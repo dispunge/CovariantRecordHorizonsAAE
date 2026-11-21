@@ -1,0 +1,71 @@
+# Python virtual environments and local interpreter state
+.venv/
+venv/
+env/
+ENV/
+.venv*/
+.python-version
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+
+# Python packaging/build output
+build/
+dist/
+*.egg-info/
+*.egg
+sdist/
+wheels/
+
+# Test, lint, and type-checker state
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter state
+.ipynb_checkpoints/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Numerical verification outputs
+lf_verification_results.json
+lf_leakage_bounds.pdf
+lf_leakage_bounds.png
+
+# Lean/Lake build artifacts
+lake-packages/
+**/.lake/
+
+# Editor and OS files
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
