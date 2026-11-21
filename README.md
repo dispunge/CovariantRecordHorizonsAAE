@@ -32,6 +32,7 @@ This repository provides **independent, reproducible verification** of the manus
 | Proof that `Genuine LF` ($\le 6$) is NOT a Bell facet (LHV rank $12 < 15$) but IS a true LF facet (LF rank $15$) | `lean/CovariantRecordHorizons/LFPolytope.lean` (`genuineLF_is_strict_LF_facet`) | Fraction-free integer Gaussian elimination inside the Lean 4 kernel |
 | Strict violation of `Genuine LF` for all $f \in (0, 1]$ with quartic excess $S_{\mathrm{GLF}}(f) \ge 6 + \frac{f^4}{1 + f^2}$ | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`genuineLF_quartic_excess`) | Formal real-algebra proof in Lean 4 + `Mathlib` (zero `sorry`) |
 | $\mathcal{O}(f^2)$ (One-Friend) vs. $\mathcal{O}(f^4)$ (Two-Friend) suppression & Werner visibility thresholds $f_{\mathrm{crit}}(\mu)$ | `lf_leak_tests.py` | Bidirectional homotopy `L-BFGS-B` sweeps + `brentq` root-finding |
+| Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ | `lf_leak_tests.py` | Analytical benchmark vs. multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
 
 *(Note: Relativistic horizon soft-graviton/soft-photon ceilings following Danielson, Satishchandran, and Wald are treated analytically in the manuscript text and are not simulated here.)*
 
@@ -93,28 +94,25 @@ python3 lf_leak_tests.py --maximally-entangled-only
 
 Install Lean 4 via [`elan`](https://github.com/leanprover/elan) (or open the folder in VS Code with the official `lean4` extension).
 
-#### A. Polytope Verification (`LFPolytope.lean`)
-Run the Lake project from the `lean/` directory:
+#### A. Instant Zero-Dependency Polytope Verification (`LFPolytope.lean`)
+Because `LFPolytope.lean` uses only the core Lean 4 standard library, the kernel can verify it directly in under one second without downloading `Mathlib`:
 ```bash
-cd lean
-lake build
-lake env lean CovariantRecordHorizons/LFPolytope.lean
+lean lean/CovariantRecordHorizons/LFPolytope.lean
 ```
-A successful build confirms that the Lean 4 kernel independently verifies every theorem with zero `sorry` placeholders:
-* `vertex_counts`: Confirms exact generation of all 64 deterministic LHV vertices and all 96 Two-Friend LF vertices (64 LHV + 32 Popescu–Rohrlich non-signaling sub-boxes).
-* `valid_lf_inequalities`: Exhaustively verifies `Semi-Brukner <= 2`, `Brukner <= 2`, `I3322-LF <= 4`, and `Genuine LF <= 6` across every LF extreme point.
-* `bellNonLF_separates_LHV_and_LF`: Proves `Bell non-LF <= 2` on LHV vertices while reaching `4` on the LF polytope.
-* `genuineLF_is_strict_LF_facet`: Proves `Genuine LF == 6` holds on 14 LHV vertices (homogeneous rank `12 < 15`, ruling it out as a Bell facet) while achieving full facet rank `15` across the 96-vertex LF polytope.
+A silent exit (code `0`) confirms that the Lean 4 kernel independently verifies every theorem with zero `sorry` placeholders:
+- `vertex_counts`: Confirms exact generation of all 64 deterministic LHV vertices and all 96 Two-Friend LF vertices (64 LHV + 32 Popescu–Rohrlich non-signaling sub-boxes).
+- `valid_lf_inequalities`: Exhaustively verifies `Semi-Brukner <= 2`, `Brukner <= 2`, `I3322-LF <= 4`, and `Genuine LF <= 6` across every LF extreme point.
+- `bellNonLF_separates_LHV_and_LF`: Proves `Bell non-LF <= 2` on LHV vertices while reaching `4` on the LF polytope.
+- `genuineLF_is_strict_LF_facet`: Proves `Genuine LF == 6` holds on 14 LHV vertices (homogeneous rank `12 < 15`, ruling it out as a Bell facet) while achieving full facet rank `15` across the 96-vertex LF polytope.
 
-#### B. Continuous Quantum Bounds (`LFQuantumBounds.lean`)
-The same Lake workspace provides Mathlib:
+#### B. Full Lake Build & Continuous Quantum Bounds (`LFQuantumBounds.lean`)
+Fetch precompiled `Mathlib` binaries first (avoids compiling `Mathlib` from source), then build the full package:
 ```bash
 cd lean
 lake exe cache get
 lake build
 ```
-
-This formally verifies `genuineLF_bloch_normalization` and `genuineLF_quartic_excess`, proving over $\mathbb{R}$ that the analytical Bloch measurement family violates Bong *et al.*'s `Genuine LF` inequality for every nonzero coherence retention $f > 0$.
+This builds both modules and formally verifies `genuineLF_bloch_normalization` and `genuineLF_quartic_excess`, proving over $\mathbb{R}$ that the analytical Bloch measurement family violates Bong *et al.*'s `Genuine LF` inequality for every nonzero coherence retention $f > 0$.
 
 ---
 
