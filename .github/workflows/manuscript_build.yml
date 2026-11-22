@@ -1,0 +1,54 @@
+name: Manuscript Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-manuscript:
+    name: Build manuscript with generated figures
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Install TeX Live
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base texlive-latex-extra texlive-pictures texlive-fonts-recommended texlive-publishers texlive-bibtex-extra latexmk
+
+      - name: Clean rebuild manuscript
+        working-directory: manuscript
+        run: make rebuild
+
+      - name: Upload manuscript PDF
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuscript-pdf
+          path: manuscript/main.pdf
+          if-no-files-found: error
+
+      - name: Upload generated figures
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuscript-generated-artifacts
+          path: |
+            manuscript/figures/lf_leakage_bounds.pdf
+            manuscript/figures/lf_leakage_bounds.png
+            manuscript/data/lf_verification_results.json

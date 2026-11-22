@@ -69,3 +69,18 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
+
+# LaTeX build artifacts and temporary files
+**/*.aux
+**/*.bbl
+**/*.bcf
+**/*.blg
+**/*.fdb_latexmk
+**/*.fls
+**/*.log
+**/*.out
+**/*.run.xml
+**/*.synctex.gz
+**/*.toc
+manuscript/*.pdf
+manuscript/build/

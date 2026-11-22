@@ -43,6 +43,10 @@ This repository provides **independent, reproducible verification** of the manus
 ```text
 .
 ├── lf_leak_tests.py                         # Numerical verifier and optimization suite
+├── requirements.txt                         # NumPy, SciPy, and Matplotlib dependencies
+├── .github/workflows/
+│   ├── lean_action_ci.yml                   # Lean and Mathlib verification
+│   └── manuscript_build.yml                 # Figure generation and PDF build
 ├── lean/
 │   ├── lakefile.toml                        # Lake package and Mathlib dependency
 │   ├── lake-manifest.json                   # Resolved Lake dependency revisions
@@ -52,6 +56,14 @@ This repository provides **independent, reproducible verification** of the manus
 │       ├── Basic.lean
 │       ├── LFPolytope.lean                 # Kernel-checked polytope/rank proofs
 │       └── LFQuantumBounds.lean            # Mathlib real-algebra proofs
+├── manuscript/
+│   ├── main.tex                             # RevTeX manuscript driver
+│   ├── Makefile                             # Clean rebuild and incremental build targets
+│   ├── build.sh                             # Cross-platform convenience wrapper
+│   ├── sections/                            # Individual section .tex sources
+│   ├── bibliography/references.bib          # BibTeX reference database
+│   ├── figures/                             # Generated PDF/PNG publication figures
+│   └── data/lf_verification_results.json    # Generated numerical verification data
 ├── README.md
 └── LICENSE                                  # Repository license
 ```
@@ -62,12 +74,12 @@ This repository provides **independent, reproducible verification** of the manus
 
 ### 1. Python Numerical Suite (`lf_leak_tests.py`)
 
-Requires Python 3.10+ with `numpy` and `scipy` (`matplotlib` optional for exporting publication figures).
+Requires Python 3.10+. The numerical and figure dependencies are declared in `requirements.txt` (`numpy`, `scipy`, and `matplotlib`).
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install numpy scipy matplotlib
+python -m pip install -r requirements.txt
 ```
 
 **Run full console verification (polytope ranks, analytical error checks, leakage tables, and hardware noise thresholds):**
