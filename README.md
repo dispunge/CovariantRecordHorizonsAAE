@@ -115,7 +115,7 @@ python3 lf_leak_tests.py --maximally-entangled-only
 Install Lean 4 via [`elan`](https://github.com/leanprover/elan) (or open the folder in VS Code with the official `lean4` extension).
 
 #### A. Instant Zero-Dependency Polytope Verification (`LFPolytope.lean`)
-Because `LFPolytope.lean` uses only the core Lean 4 standard library, the kernel can verify it directly in under one second without downloading `Mathlib`:
+Because `LFPolytope.lean` uses only the core Lean 4 standard library, the kernel can verify it directly without downloading `Mathlib`:
 ```bash
 lean lean/CovariantRecordHorizons/LFPolytope.lean
 ```
@@ -124,6 +124,7 @@ A silent exit (code `0`) confirms that the Lean 4 kernel independently verifies 
 - `valid_lf_inequalities`: Exhaustively verifies `Semi-Brukner <= 2`, `Brukner <= 2`, `I3322-LF <= 4`, and `Genuine LF <= 6` across every LF extreme point.
 - `bellNonLF_separates_LHV_and_LF`: Proves `Bell non-LF <= 2` on LHV vertices while reaching `4` on the LF polytope.
 - `genuineLF_is_strict_LF_facet`: Proves `Genuine LF == 6` holds on 14 LHV vertices (homogeneous rank `12 < 15`, ruling it out as a Bell facet) while achieving full facet rank `15` across the 96-vertex LF polytope.
+- `semiBrukner_lhv_rank`, `semiBrukner_lf_rank`, `brukner_lhv_rank`, `brukner_lf_rank`, `i3322LF_lhv_rank`, `i3322LF_lf_rank`, `bellNonLF_lhv_rank`: Prove the remaining ranks of the manuscript's Table I (all `15`), so that every rank in that table is kernel-checked.
 
 #### B. Full Lake Build & Continuous Quantum Bounds (`LFQuantumBounds.lean`)
 Fetch precompiled `Mathlib` binaries first (avoids compiling `Mathlib` from source), then build the full package:
