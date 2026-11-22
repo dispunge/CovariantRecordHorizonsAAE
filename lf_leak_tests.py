@@ -21,6 +21,10 @@ Verifies:
    in the high-leakage regime (f -> 0, ell -> 1).
 4. Critical coherence thresholds f_crit(mu) and maximum tolerable leakage
    ell_max(mu) under realistic quantum-processor visibility mu in (0, 1].
+5. The two-qubit bilateral dephasing bound S <= 2 * mu * sqrt(1 + fA^2 fB^2)
+   for the CHSH-type functionals (Brukner, Bell non-LF, and Semi-Brukner with
+   Debbie present), its saturation by the latter two, and the resulting
+   closed-form threshold f_crit = (mu^-2 - 1)^(1/4) for symmetric leakage.
 
 Usage:
     python3 lf_leak_tests.py
@@ -138,6 +142,25 @@ def get_bong_2020_inequalities() -> List[EWFSIInequality]:
             category_note="True LF polytope facet (NOT a Bell/LHV facet)",
         ),
     ]
+
+
+def two_friend_semi_brukner() -> EWFSIInequality:
+    """
+    The Semi-Brukner functional evaluated with Debbie present, so that Bob's
+    settings y = 2, 3 are both dephased along her axis. The default entry in
+    get_bong_2020_inequalities() models the one-friend scenario (f_B = 1).
+    """
+    base = next(iq for iq in get_bong_2020_inequalities() if iq.name == "Semi-Brukner")
+    return EWFSIInequality(
+        name="Semi-Brukner (2F)",
+        J=base.J,
+        ca=base.ca,
+        cb=base.cb,
+        bound=base.bound,
+        alice_has_friend=True,
+        bob_has_friend=True,
+        category_note="Semi-Brukner with both labs leaky (saturates 2*sqrt(1+fA^2 fB^2))",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -289,6 +312,23 @@ def analytical_two_friend_brukner(f: float, mu: float = 1.0, grid_size: int = 40
     return float(mu * np.max(np.sqrt(term_x * term_x + term_y2)))
 
 
+def analytical_bilateral_chsh(f_alice: float, f_bob: float, mu: float = 1.0) -> float:
+    """
+    Two-qubit upper bound for CHSH-type functionals when both labs leak:
+        S <= mu * 2 * sqrt(1 + f_A^2 f_B^2)
+    Saturated by Bell non-LF and by Semi-Brukner with Debbie present; f_B = 1
+    reproduces the one-friend value of analytical_semi_brukner().
+    """
+    return mu * 2.0 * math.sqrt(1.0 + (f_alice * f_bob) ** 2)
+
+
+def analytical_bilateral_threshold(mu: float) -> Optional[float]:
+    """Symmetric-leakage threshold f_crit = (mu^-2 - 1)^(1/4) of the saturated functionals."""
+    if mu <= 1.0 / math.sqrt(2.0):
+        return None
+    return (mu ** -2 - 1.0) ** 0.25
+
+
 def analytical_genuine_lf_collinear_lower_bound(f: float) -> float:
     """
     Exact collinear-friend-basis family for Genuine LF at mu = 1:
@@ -323,6 +363,7 @@ def evaluate_ewfs_quantum_value(
     f: float,
     mu: float = 1.0,
     fix_maximally_entangled: bool = False,
+    f_bob: Optional[float] = None,
 ) -> float:
     """
     Evaluates S for a general 2-qubit Schmidt state mixed with white noise:
@@ -334,7 +375,10 @@ def evaluate_ewfs_quantum_value(
                       (when alice_has_friend=True, x=1 defines Charlie's axis u_C)
       params[7..12] : (theta, phi) for Bob settings y = 1, 2, 3
                       (when bob_has_friend=True, y=1 defines Debbie's axis u_D)
+    `f` is Charlie's coherence retention f_A; Debbie's is `f_bob` (defaults to
+    `f`, i.e. symmetric leakage).
     """
+    f_b = f if f_bob is None else f_bob
     vartheta = (math.pi / 4.0) if fix_maximally_entangled else float(params[0])
     c2v = math.cos(2.0 * vartheta)
     s2v = math.sin(2.0 * vartheta)
@@ -350,7 +394,7 @@ def evaluate_ewfs_quantum_value(
 
     if ineq.bob_has_friend:
         u_d = b_raw[0]
-        b_eff = [u_d, dephase_along_axis(b_raw[1], u_d, f), dephase_along_axis(b_raw[2], u_d, f)]
+        b_eff = [u_d, dephase_along_axis(b_raw[1], u_d, f_b), dephase_along_axis(b_raw[2], u_d, f_b)]
     else:
         b_eff = b_raw
 
@@ -416,6 +460,7 @@ def optimize_quantum_bound_sweep(
     fix_maximally_entangled: bool = False,
     n_random_starts: Union[int, Sequence[int]] = 20,
     seed: int = 42,
+    f_bob: Optional[float] = None,
 ) -> np.ndarray:
     """
     Computes the global quantum maximum S_max(f) across `f_grid` using:
@@ -423,6 +468,8 @@ def optimize_quantum_bound_sweep(
       2. Seeded 3D random multi-starts,
       3. Bidirectional homotopy continuation (sweeping 0 -> 1 and 1 -> 0)
          so sharp branch crossovers near small f are resolved accurately.
+    `f_grid` is Charlie's coherence retention; Debbie's is fixed at `f_bob`
+    when given and otherwise tracks `f_grid` (symmetric leakage).
     `n_random_starts` is either one count for every grid point or one count
     per grid point.
     """
@@ -439,7 +486,7 @@ def optimize_quantum_bound_sweep(
 
     def run_local(x0: np.ndarray, f_val: float) -> Tuple[float, np.ndarray]:
         res = minimize(
-            lambda p: -evaluate_ewfs_quantum_value(p, ineq, f_val, mu, fix_maximally_entangled),
+            lambda p: -evaluate_ewfs_quantum_value(p, ineq, f_val, mu, fix_maximally_entangled, f_bob),
             x0,
             method="L-BFGS-B",
             options={"ftol": 1e-13, "gtol": 1e-9, "maxiter": 500},
@@ -701,6 +748,62 @@ def main() -> None:
                 }
         print(f"{mu_val:6.2f} | " + " | ".join(cells))
 
+    # Closed-form symmetric two-lab threshold of the saturated CHSH-type functionals
+    # versus the numerically located Bell non-LF threshold above.
+    print("\nClosed form for two equally leaky labs: f_crit = (mu^-2 - 1)^(1/4)")
+    bilateral_threshold_records = {}
+    for mu_val in mu_list:
+        f_closed = analytical_bilateral_threshold(mu_val)
+        numeric = threshold_records[str(mu_val)].get("Bell non-LF")
+        f_numeric = None if numeric is None else numeric["f_crit"]
+        bilateral_threshold_records[str(mu_val)] = {"closed_form": f_closed, "bell_non_lf_numeric": f_numeric}
+        closed_txt = "no violation" if f_closed is None else f"{f_closed:.4f}"
+        numeric_txt = "no violation" if f_numeric is None else f"{f_numeric:.4f}"
+        print(f"  mu = {mu_val:4.2f}: closed form {closed_txt:>12} | Bell non-LF numeric {numeric_txt:>12}")
+
+    # Genuine LF thresholds when partially entangled Schmidt states are admitted
+    # (the table above fixes the maximally entangled Werner state).
+    glf = next(iq for iq in inequalities if iq.name == "Genuine LF")
+    glf_general_records = {}
+    print("\nGenuine LF thresholds over general Schmidt states mixed with white noise:")
+    for mu_val in [0.88, 0.92, 0.96]:
+        fc = solve_critical_coherence(glf, mu=mu_val, fix_maximally_entangled=False)
+        glf_general_records[str(mu_val)] = None if fc is None else round(fc, 5)
+        txt = "no violation" if fc is None else f"f > {fc:.3f} (l < {math.sqrt(max(0.0, 1.0 - fc * fc)):.3f})"
+        print(f"  mu = {mu_val:4.2f}: {txt}")
+
+    # --- Step 4: Two-qubit bilateral dephasing bound for CHSH-type functionals ---
+    print("\n" + "=" * 86)
+    print("5. BILATERAL CHSH BOUND  S <= 2*sqrt(1 + fA^2 fB^2)  (mu = 1.0, general states)")
+    print("   (saturated by Bell non-LF and by Semi-Brukner with Debbie present; Brukner lies below)")
+    print("=" * 86)
+    chsh_type = [two_friend_semi_brukner()] + [
+        iq for iq in inequalities if iq.name in ("Bell non-LF", "Brukner")
+    ]
+    leak_pairs = [(0.2, 0.2), (0.5, 0.5), (0.8, 0.8), (0.1, 0.4), (0.4, 0.1),
+                  (0.3, 0.6), (0.7, 0.9), (0.3, 1.0), (1.0, 0.3)]
+    print(f"{'fA':>5} {'fB':>5} | {'bound':>10} | " + " | ".join(f"{iq.name:^18}" for iq in chsh_type))
+    print("-" * 86)
+    bilateral_records = []
+    worst_overshoot = 0.0
+    worst_saturation_gap = 0.0
+    for f_a, f_b in leak_pairs:
+        bound_ab = analytical_bilateral_chsh(f_a, f_b)
+        record = {"f_alice": f_a, "f_bob": f_b, "bound": bound_ab}
+        cells = []
+        for iq in chsh_type:
+            val = float(optimize_quantum_bound_sweep(
+                iq, np.array([f_a]), mu=1.0, n_random_starts=24, f_bob=f_b)[0])
+            record[iq.name] = val
+            worst_overshoot = max(worst_overshoot, val - bound_ab)
+            if iq.name != "Brukner":
+                worst_saturation_gap = max(worst_saturation_gap, abs(val - bound_ab))
+            cells.append(f"{val:^18.10f}")
+        bilateral_records.append(record)
+        print(f"{f_a:5.2f} {f_b:5.2f} | {bound_ab:10.8f} | " + " | ".join(cells))
+    print(f"Largest S_num - bound over all three functionals : {worst_overshoot:+.3e} (must be <= 0 up to solver tolerance)")
+    print(f"Largest |S_num - bound| on the two saturated ones: {worst_saturation_gap:.3e}")
+
     if args.save_json:
         payload = {
             "f_grid": f_grid.tolist(),
@@ -715,6 +818,11 @@ def main() -> None:
             "brukner_max_abs_err": bruk_max_err,
             "excess_violation_mu_1": {k: v.tolist() for k, v in excess_curves.items()},
             "visibility_thresholds_werner": threshold_records,
+            "bilateral_thresholds_closed_form": bilateral_threshold_records,
+            "genuine_lf_thresholds_general_states": glf_general_records,
+            "bilateral_chsh_bound_checks": bilateral_records,
+            "bilateral_chsh_max_overshoot": worst_overshoot,
+            "bilateral_chsh_max_saturation_gap": worst_saturation_gap,
         }
         with open(args.save_json, "w", encoding="utf-8") as fp:
             json.dump(payload, fp, indent=2)

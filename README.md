@@ -35,6 +35,7 @@ This repository provides **independent, reproducible verification** of the manus
 | Strict violation of `Genuine LF` for all $f \in (0, 1]$ with quartic excess $S_{\mathrm{GLF}}(f) \ge 6 + \frac{f^4}{1 + f^2}$ | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`genuineLF_quartic_excess`) | Formal real-algebra proof in Lean 4 + `Mathlib` (zero `sorry`) |
 | $\mathcal{O}(f^2)$ (One-Friend) vs. $\mathcal{O}(f^4)$ (Two-Friend) suppression & Werner visibility thresholds $f_{\mathrm{crit}}(\mu)$ | `lf_leak_tests.py` | Bidirectional homotopy `L-BFGS-B` sweeps + `brentq` root-finding |
 | Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ | `lf_leak_tests.py` | Analytical benchmark vs. multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
+| Two-qubit product bound $S \le 2\mu\sqrt{1 + f_A^2 f_B^2}$ for the CHSH-type functionals (Proposition 2) and the two-lab threshold $f_{\mathrm{crit}} = (\mu^{-2} - 1)^{1/4}$ | `lf_leak_tests.py` (section 5 of the console report) | Multi-start optimization at nine $(f_A, f_B)$ pairs: no value above the bound, `Bell non-LF` and two-friend `Semi-Brukner` on it to $10^{-12}$; closed form vs. `brentq` thresholds |
 
 *(Note: Relativistic horizon soft-graviton/soft-photon ceilings following Danielson, Satishchandran, and Wald are treated analytically in the manuscript text and are not simulated here.)*
 
@@ -141,7 +142,7 @@ This builds both modules and formally verifies `genuineLF_bloch_normalization` a
 
 This repository is designed to be forked and adapted for experimental and theoretical follow-up work:
 * **Custom Quantum Hardware Noise Models:** Replace the isotropic Werner state visibility parameter `mu` in `evaluate_ewfs_quantum_value()` (`lf_leak_tests.py`) with asymmetric $T_1 / T_2$ relaxation, spectator-qubit crosstalk, or mid-circuit ancilla readout confusion matrices calibrated to specific superconducting or trapped-ion processors.
-* **Asymmetric Bilateral Leakage ($f_A \neq f_B$):** Modify `dephase_along_axis()` calls in `lf_leak_tests.py` to pass independent coherence retention factors `(f_A, f_B)` when modeling hybrid photonic-matter EWFS setups.
+* **Asymmetric Bilateral Leakage ($f_A \neq f_B$):** Pass `f_bob` to `evaluate_ewfs_quantum_value()` or `optimize_quantum_bound_sweep()` in `lf_leak_tests.py` to give Bob's laboratory its own coherence retention (section 5 of the console report does this for the CHSH-type functionals), e.g. when modeling hybrid photonic-matter EWFS setups.
 * **Higher-Setting Polytopes:** Extend `Corr15` in `LFPolytope.lean` and `EWFSIInequality` in `lf_leak_tests.py` to test $(4,4,2,2)$ or sequential multi-friend facets.
 
 ---
