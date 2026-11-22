@@ -494,6 +494,9 @@ def maybe_generate_plots(
         print("\n[WARN] matplotlib is not installed; skipping figure generation.")
         return
 
+    plt.rcParams["pdf.fonttype"] = 42
+    plt.rcParams["ps.fonttype"] = 42
+
     ell_grid = np.sqrt(np.maximum(0.0, 1.0 - f_grid ** 2))
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6))
 

@@ -1,13 +1,25 @@
 % !TEX program = pdflatex
-\documentclass[aps,pra,reprint,superscriptaddress,nofootinbib,amsmath,amssymb]{revtex4-2}
+\documentclass[aps,pra,reprint,nofootinbib,amsmath,amssymb]{revtex4-2}
+
+\input{glyphtounicode}
+\pdfgentounicode=1
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage{graphicx}
 \usepackage{bm}
 \usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{orcidlink}
+
+\hypersetup{
+  pdftitle={Covariant Record Horizons and the Abandonment of Absolute Events},
+  pdfauthor={Kevin J. Baker},
+  pdfsubject={Quantum Foundations; Relativistic Quantum Information},
+  pdfkeywords={quantum foundations, Wigner's friend, Local Friendliness, algebraic quantum field theory, Lean 4}
+}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -20,10 +32,10 @@
 
 \title{Covariant Record Horizons and the Abandonment of Absolute Events}
 
-\author{Kevin J. Baker}
-% TODO before arXiv submission: uncomment and populate permanent contact email / affiliation
+\author{Kevin J. Baker\,\orcidlink{0009-0002-4464-6391}}
+\affiliation{Independent Researcher}
+% TODO before arXiv submission: uncomment and populate permanent contact email if desired
 % \email{your.research.email@example.com}
-% \affiliation{Independent Researcher}
 
 \date{\today}
 
