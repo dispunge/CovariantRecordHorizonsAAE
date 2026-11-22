@@ -20,8 +20,11 @@ case "${1:-rebuild}" in
   figures)
     make -C "$manuscript_dir" figures
     ;;
+  audit)
+    make -C "$manuscript_dir" audit
+    ;;
   *)
-    echo "Usage: $0 [rebuild|setup|build|clean|figures]" >&2
+    echo "Usage: $0 [rebuild|setup|build|clean|figures|audit]" >&2
     exit 2
     ;;
 esac

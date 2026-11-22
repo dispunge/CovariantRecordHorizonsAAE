@@ -510,7 +510,7 @@ def maybe_generate_plots(
     for name, curve in excess_curves.items():
         color, ls, label = styles[name]
         ax0.plot(f_grid, np.maximum(0.0, curve), color=color, linestyle=ls, lw=2.0, label=label)
-    ax0.set_xlabel(r"Coherence retention $f = |\langle e_0 | e_1 \rangle|$")
+    ax0.set_xlabel(r"Coherence retention $f = \vert{}\langle e_+ \vert{} e_- \rangle\vert{}$")
     ax0.set_ylabel(r"Quantum violation excess $\Delta S = S_{\max}(f) - B_{\mathrm{LF}}$")
     ax0.set_title("(a) Violation Excess Across Coherence Retention")
     ax0.grid(True, alpha=0.3)

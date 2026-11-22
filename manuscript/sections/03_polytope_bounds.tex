@@ -21,7 +21,10 @@ Notice the physical endpoints of Eq.~\eqref{eq:polarity_convention}: perfect iso
 
 A $(3,3,2,2)$ behavior is specified by the 15-dimensional expectation vector
 \begin{equation}
-    \vec{p} = \bigl(\langle A_1 \rangle, \langle A_2 \rangle, \langle A_3 \rangle, \langle B_1 \rangle, \langle B_2 \rangle, \langle B_3 \rangle, \langle A_1 B_1 \rangle, \dots, \langle A_3 B_3 \rangle\bigr) \in \mathbb{R}^{15}.
+\begin{aligned}
+    \vec{p} = \bigl(&\langle A_1 \rangle, \langle A_2 \rangle, \langle A_3 \rangle, \langle B_1 \rangle, \langle B_2 \rangle, \langle B_3 \rangle, \\
+    &\langle A_1 B_1 \rangle, \dots, \langle A_3 B_3 \rangle\bigr) \in \mathbb{R}^{15}.
+\end{aligned}
 \end{equation}
 Under Local Hidden Variables (LHV), the Bell polytope $\mathcal{P}_{\mathrm{LHV}} \subset \mathbb{R}^{15}$ is the convex hull of $2^6 = 64$ deterministic extreme points $a_x, b_y \in \{-1, +1\}$ with $\langle A_x B_y \rangle = a_x b_y$. Under Two-Friend Local Friendliness (AOE applied to $c, d, A_x, B_y$ combined with Local Agency), there exists a joint distribution $P(a_x, b_y, c, d | x, y)$ satisfying no-signaling and $A_1 = c$ when $x = 1$, $B_1 = d$ when $y = 1$. Conditioning on deterministic friend outcomes $(c, d) \in \{-1, +1\}^2$ leaves an arbitrary non-signaling $(2,2,2,2)$ box on settings $\{2, 3\} \times \{2, 3\}$, whose non-local extreme points are the 8 Popescu--Rohrlich (PR) boxes ($\langle A_x \rangle = \langle B_y \rangle = 0$ for $x, y \in \{2, 3\}$ and $E_{22} E_{23} E_{32} E_{33} = -1$ with $E_{xy} \in \{-1, +1\}$). Consequently, $\mathcal{P}_{\mathrm{LF}}$ is spanned by $64 + 4 \times 8 = 96$ vertices in $\mathbb{R}^{15}$~\cite{bong2020}.
 
@@ -46,12 +49,12 @@ Table~\ref{tab:polytope_ranks} summarizes the exact vertex maxima and tight homo
     S_{\mathrm{SB}} &= -\langle A_1 B_2 \rangle + \langle A_1 B_3 \rangle - \langle A_3 B_2 \rangle - \langle A_3 B_3 \rangle \le 2, \label{eq:ineq_sb} \\
     S_{\mathrm{Bruk}} &= -\langle A_1 B_1 \rangle + \langle A_1 B_2 \rangle - \langle A_2 B_1 \rangle - \langle A_2 B_2 \rangle \le 2, \label{eq:ineq_bruk} \\
     S_{\mathrm{BnLF}} &= \langle A_2 B_2 \rangle - \langle A_2 B_3 \rangle - \langle A_3 B_2 \rangle - \langle A_3 B_3 \rangle \le 2, \label{eq:ineq_bnlf} \\
-    S_{I_{3322}} &= -\langle A_1 \rangle + \langle A_2 \rangle + \langle B_1 \rangle - \langle B_2 \rangle + \langle A_1 B_1 \rangle - \langle A_1 B_2 \rangle \nonumber \\
-    &\quad - \langle A_1 B_3 \rangle - \langle A_2 B_1 \rangle + \langle A_2 B_2 \rangle - \langle A_2 B_3 \rangle \nonumber \\
-    &\quad - \langle A_3 B_1 \rangle - \langle A_3 B_2 \rangle \le 4, \label{eq:ineq_i3322} \\
-    S_{\mathrm{GLF}} &= -\langle A_1 \rangle - \langle A_2 \rangle - \langle B_1 \rangle - \langle B_2 \rangle - \langle A_1 B_1 \rangle - 2\langle A_1 B_2 \rangle \nonumber \\
-    &\quad - 2\langle A_2 B_1 \rangle + 2\langle A_2 B_2 \rangle - \langle A_2 B_3 \rangle - \langle A_3 B_2 \rangle \nonumber \\
-    &\quad - \langle A_3 B_3 \rangle \le 6. \label{eq:ineq_glf}
+    S_{I_{3322}} &= -\langle A_1 \rangle + \langle A_2 \rangle + \langle B_1 \rangle - \langle B_2 \rangle + \langle A_1 B_1 \rangle \nonumber \\
+    &\quad - \langle A_1 B_2 \rangle - \langle A_1 B_3 \rangle - \langle A_2 B_1 \rangle + \langle A_2 B_2 \rangle \nonumber \\
+    &\quad - \langle A_2 B_3 \rangle - \langle A_3 B_1 \rangle - \langle A_3 B_2 \rangle \le 4, \label{eq:ineq_i3322} \\
+    S_{\mathrm{GLF}} &= -\langle A_1 \rangle - \langle A_2 \rangle - \langle B_1 \rangle - \langle B_2 \rangle - \langle A_1 B_1 \rangle \nonumber \\
+    &\quad - 2\langle A_1 B_2 \rangle - 2\langle A_2 B_1 \rangle + 2\langle A_2 B_2 \rangle - \langle A_2 B_3 \rangle \nonumber \\
+    &\quad - \langle A_3 B_2 \rangle - \langle A_3 B_3 \rangle \le 6. \label{eq:ineq_glf}
 \end{align}
 Crucially, while $S_{\mathrm{GLF}} \le 6$ holds on all 64 LHV vertices, equality $S_{\mathrm{GLF}} = 6$ is attained on only 14 LHV vertices whose homogeneous span has rank $12 < 15$ (since every tight LHV vertex simultaneously satisfies $1 + a_2 + b_1 + a_2 b_1 = 0$, $1 + a_1 + b_2 + a_1 b_2 = 0$, and $a_2 b_2 - a_2 b_3 - a_3 b_2 - a_3 b_3 = 2$). Including the PR-box LF vertices raises the tight homogeneous rank to $15$, confirming from first principles that $S_{\mathrm{GLF}} \le 6$ is a genuine facet of $\mathcal{P}_{\mathrm{LF}}$ and \emph{not} a facet of $\mathcal{P}_{\mathrm{LHV}}$.
 
@@ -74,20 +77,22 @@ Let $\mathfrak{A}$ be a unital $C^*$-algebra, let $A_1, N \in \mathfrak{A}_A$ an
 
 \begin{proof}
 From $A_1^2 = N^2 = \mathbf{1}$, direct expansion gives $N_\pm^* = N_\pm$, $A_1 N_+ = N_+ A_1$, $A_1 N_- = -N_- A_1$, $N_+ N_- + N_- N_+ = 0$, and $N_+^2 + N_-^2 = \mathbf{1}$. Setting $D_- = B_3 - B_2$ and $D_+ = B_3 + B_2$, the involutions $B_2^2 = B_3^2 = \mathbf{1}$ yield $D_\mp^* = D_\mp$, $D_-^2 + D_+^2 = 4\mathbf{1}$, and $D_- D_+ + D_+ D_- = 0$. Expanding $K(f)^2$ using $A_1 N_+ = N_+ A_1$, $A_1 N_- = -N_- A_1$, and $D_- D_+ + D_+ D_- = 0$ eliminates the $N_+$ cross-term and gives
-\begin{equation}
-    K(f)^2 = D_-^2 + (N_+^2 + f^2 N_-^2) D_+^2 - f A_1 N_- (D_- D_+ - D_+ D_-).
-    \label{eq:k2_expand}
+\begin{equation}\label{eq:K_squared}
+\begin{aligned}
+K(f)^2 &= D_-^2 + (N_+^2 + f^2 N_-^2) D_+^2 \\
+       &\quad - f A_1 N_- (D_- D_+ - D_+ D_-).
+\end{aligned}
 \end{equation}
 Introduce the auxiliary elements $S_1 = f D_- + A_1 N_- D_+$ and $S_2 = f N_+ D_+$. Because $A_1$ and $N_-$ anticommute, $(A_1 N_-)^* = N_- A_1 = -A_1 N_-$ and $(A_1 N_-)^2 = -N_-^2$, whence $S_1^* = f D_- - A_1 N_- D_+$ and
-\begin{align}
-    S_1^* S_1 &= f^2 D_-^2 + N_-^2 D_+^2 + f A_1 N_- (D_- D_+ - D_+ D_-), \nonumber
-    S_2^* S_2 &= f^2 N_+^2 D_+^2.
-    \label{eq:sos_aux}
-\end{align}
-Summing Eqs.~\eqref{eq:k2_expand} and~\eqref{eq:sos_aux} cancels the commutator term identically and yields the exact Sum-of-Squares identity
-\begin{equation}
-    4(1 + f^2)\mathbf{1} - K(f)^2 = S_1^* S_1 + S_2^* S_2,
-    \label{eq:sos_identity}
+\begin{equation}\label{eq:S1S2_squares}
+\begin{aligned}
+S_1^* S_1 &= f^2 D_-^2 + N_-^2 D_+^2 + f A_1 N_- (D_- D_+ - D_+ D_-), \\
+S_2^* S_2 &= f^2 N_+^2 D_+^2.
+\end{aligned}
+\end{equation}
+Summing Eqs.~\eqref{eq:K_squared} and~\eqref{eq:S1S2_squares} cancels the commutator term identically and yields the exact Sum-of-Squares identity
+\begin{equation}\label{eq:sos_identity}
+4(1 + f^2)\mathbf{1} - K(f)^2 = S_1^* S_1 + S_2^* S_2,
 \end{equation}
 since $N_+^2 + N_-^2 = \mathbf{1}$ and $D_-^2 + D_+^2 = 4\mathbf{1}$. For every state $\omega$ on $\mathfrak{A}$, positivity guarantees $\omega(S_1^* S_1) \ge 0$ and $\omega(S_2^* S_2) \ge 0$, so $|\omega(K(f))|^2 \le \omega(K(f)^2) \le 4(1 + f^2)$, proving Eq.~\eqref{eq:theorem1_bound}. The bound is saturated on a two-qubit Bell state $|\Phi^+\rangle$ by choosing $A_1 = \sigma_z$, $N = \sigma_x$ ($N_+ = 0, N_- = \sigma_x$), and $B_{2,3} = \mp \cos\varphi\,\sigma_z + \sin\varphi\,\sigma_x$ with $\tan\varphi = f$.
 \end{proof}
@@ -113,7 +118,7 @@ A qualitatively harsher scaling emerges in genuine two-friend scenarios where \e
     }{%
         \fbox{\parbox{0.94\textwidth}{\centering\vspace{1.1cm}%
         \textbf{Figure placeholder:} Generate \texttt{lf\_leakage\_bounds.pdf} via
-        \texttt{python3 lf\_leak\_tests.py --plot} and copy it to \texttt{paper/figures/lf\_leakage\_bounds.pdf}.%
+        \texttt{python3 lf\_leak\_tests.py --plot} and copy it to \texttt{manuscript/figures/lf\_leakage\_bounds.pdf}.%
         \vspace{1.1cm}}}%
     }
     \caption{%
@@ -129,11 +134,14 @@ A qualitatively harsher scaling emerges in genuine two-friend scenarios where \e
 \end{figure*}
 
 Evaluating $S_{\mathrm{Bruk}}$ on a maximally entangled state mixed with isotropic noise, $\rho_\mu = \mu |\Phi^+\rangle\langle\Phi^+| + (1 - \mu)\mathbb{I}_4/4$ with visibility $\mu \in (0, 1]$, rotational invariance allows fixing $\hat{u}_C = \hat{z}$, $\hat{n}_2 = (\sin\theta_A, 0, \cos\theta_A)$, and $\hat{u}_D(\delta) = (-\sin\delta, 0, -\cos\delta)$ in the X--Z plane (after mirror-reflecting Bob's $y$ coordinate). Maximizing analytically over $\hat{m}_2 \in S^2$ yields the exact reduction
-\begin{align}
-    B_{\max}^{\mathrm{Bruk}}(f, \mu) &= \mu \max_{\theta_A, \delta \in [0, \pi]} \Bigl[ \vec{v}_+(\theta_A) \cdot \hat{u}_D(\delta) \nonumber \\
-    &\quad + \sqrt{f^2 \|\vec{v}_-(\theta_A)\|^2 + (1 - f^2)\bigl(\vec{v}_-(\theta_A) \cdot \hat{u}_D(\delta)\bigr)^2} \Bigr],
-    \label{eq:brukner_closed_form}
-\end{align}
+\begin{equation}\label{eq:brukner_closed_form}
+\begin{aligned}
+B_{\max}^{\mathrm{Bruk}}(f, \mu) &= \mu \max_{\theta_A, \delta \in [0, \pi]} \Bigl\{
+    \vec{v}_+(\theta_A) \cdot \hat{u}_D(\delta) \\
+    &\quad + \bigl[ f^2 \|\vec{v}_-(\theta_A)\|^2 \\
+    &\qquad + (1 - f^2)\bigl(\vec{v}_-(\theta_A) \cdot \hat{u}_D(\delta)\bigr)^2 \bigr]^{1/2} \Bigr\},
+\end{aligned}
+\end{equation}
 where $\vec{v}_\pm(\theta_A) = (-f\sin\theta_A, 0, \mp 1 - \cos\theta_A)$. On the collinear friend branch ($\delta = 0$), Eq.~\eqref{eq:brukner_closed_form} reduces to $\mu [1 + c + \sqrt{(1 - c)^2 + f^4(1 - c^2)}]$ for $c = \cos\theta_A$, whose exact maximum occurs at $c^* = 1/(1 + f^2)$ and equals $\mu [2 + f^4/(1 + f^2)]$ identically, suppressing excess violation from $\mathcal{O}(f^2)$ down to $\mathcal{O}(f^4)$ throughout the high-leakage regime before crossing over to tilted friend axes ($\delta > 0$) at larger $f$.
 
 Crucially, the exact same quartic law governs Bong \emph{et al.}'s genuine LF facet $S_{\mathrm{GLF}} \le 6$:
