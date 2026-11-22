@@ -109,6 +109,12 @@ This produces `lf_leakage_bounds.pdf` and `lf_leakage_bounds.png`, illustrating:
 python3 lf_leak_tests.py --maximally-entangled-only
 ```
 
+**Survey the two LF facet classes the manuscript does not analyze** (the second genuine LF class and the $I_{3322}$ class with marginals on inputs 2 and 3; adds about 20 seconds):
+```bash
+python3 lf_leak_tests.py --extended-classes
+```
+This prints their facet checks and the excess at a few values of $f$, with the ratios to $f^4$ and $f^8$ (numerically $\approx 0.536 f^4$ and $\approx f^8/4$ as $f \to 0$).
+
 ---
 
 ### 2. Formal Machine-Checked Proofs (Lean 4)

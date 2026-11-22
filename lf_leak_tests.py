@@ -30,6 +30,7 @@ Usage:
     python3 lf_leak_tests.py
     python3 lf_leak_tests.py --plot --save-json lf_verification_results.json
     python3 lf_leak_tests.py --grid-points 11      # coarse, faster sweep
+    python3 lf_leak_tests.py --extended-classes    # also survey the two remaining LF classes
 """
 
 from __future__ import annotations
@@ -161,6 +162,48 @@ def two_friend_semi_brukner() -> EWFSIInequality:
         bob_has_friend=True,
         category_note="Semi-Brukner with both labs leaky (saturates 2*sqrt(1+fA^2 fB^2))",
     )
+
+
+def get_additional_lf_classes() -> List[EWFSIInequality]:
+    """
+    Representatives of the two non-trivial LF facet classes of Bong et al. (2020)
+    that the manuscript does not analyze (their enumeration has nine classes:
+    two genuine LF, two I3322, Brukner, Semi-Brukner and three positivity classes).
+    Both are checked to be LF facets by verify_polytope_structure(). The first is
+    not a Bell facet (LHV rank 14), which separates it from 'Genuine LF' (LHV
+    rank 12); in the second the friend-readout setting is the one without a
+    marginal term, which no relabeling that keeps setting 1 fixed can undo.
+    """
+    return [
+        EWFSIInequality(
+            name="Genuine LF 2",
+            J=np.array([
+                [-1.0, -2.0,  0.0],
+                [-1.0,  1.0, -1.0],
+                [-1.0,  1.0,  1.0],
+            ]),
+            ca=np.array([-1.0, -1.0, -1.0]),
+            cb=np.array([-1.0,  0.0,  0.0]),
+            bound=5.0,
+            alice_has_friend=True,
+            bob_has_friend=True,
+            category_note="Second genuine LF class (NOT a Bell/LHV facet)",
+        ),
+        EWFSIInequality(
+            name="I3322-LF (2,3)",
+            J=np.array([
+                [ 0.0, -1.0,  1.0],
+                [-1.0, -1.0, -1.0],
+                [ 1.0, -1.0, -1.0],
+            ]),
+            ca=np.array([0.0, -1.0, -1.0]),
+            cb=np.array([0.0, -1.0, -1.0]),
+            bound=4.0,
+            alice_has_friend=True,
+            bob_has_friend=True,
+            category_note="I3322 class with marginals on inputs 2 and 3",
+        ),
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -639,6 +682,9 @@ def main() -> None:
     parser.add_argument("--grid-points", type=int, default=51,
                         help="Number of f samples on [0, 1] for the mu = 1 sweep and the figure; must be "
                              "10*k + 1 so that the 0.1-spaced table rows lie on the grid (default: 51)")
+    parser.add_argument("--extended-classes", action="store_true",
+                        help="Also survey the second genuine LF class and the I3322 class with marginals "
+                             "on inputs 2 and 3 (not analyzed in the manuscript)")
     args = parser.parse_args()
     if args.grid_points < 11 or (args.grid_points - 1) % 10 != 0:
         parser.error("--grid-points must be of the form 10*k + 1 (11, 21, 51, 101, ...)")
@@ -804,6 +850,34 @@ def main() -> None:
     print(f"Largest S_num - bound over all three functionals : {worst_overshoot:+.3e} (must be <= 0 up to solver tolerance)")
     print(f"Largest |S_num - bound| on the two saturated ones: {worst_saturation_gap:.3e}")
 
+    # --- Optional: the two LF facet classes outside the manuscript's five functionals ---
+    extended_records = None
+    if args.extended_classes:
+        print("\n" + "=" * 86)
+        print("6. EXTENDED SURVEY: REMAINING NON-TRIVIAL LF FACET CLASSES (mu = 1.0, both labs leaky)")
+        print("   (numerical only; these two classes are not analyzed in the manuscript)")
+        print("=" * 86)
+        extra = get_additional_lf_classes()
+        for pr in verify_polytope_structure(extra):
+            print(f"{pr.name:<15} bound {pr.bound:3.1f} | LHV max {pr.lhv_max:3.1f}, rank {pr.lhv_tight_rank:2d} "
+                  f"| LF max {pr.lf_max:3.1f}, rank {pr.lf_tight_rank:2d} "
+                  f"| Bell facet: {pr.is_bell_facet} | LF facet: {pr.is_lf_facet}")
+        survey_grid = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.0])
+        print(f"\n{'f':>5} | " + " | ".join(f"{iq.name + ' excess':>22} {'/f^4':>9} {'/f^8':>9}" for iq in extra))
+        print("-" * 86)
+        survey = {iq.name: optimize_quantum_bound_sweep(iq, survey_grid, mu=1.0, n_random_starts=48) - iq.bound
+                  for iq in extra}
+        for idx, f_val in enumerate(survey_grid):
+            cells = [f"{survey[iq.name][idx]:+22.6e} {survey[iq.name][idx] / f_val ** 4:9.5f} "
+                     f"{survey[iq.name][idx] / f_val ** 8:9.3f}" for iq in extra]
+            print(f"{f_val:5.2f} | " + " | ".join(cells))
+        print("Small-f reading (numerical, not proved): 'Genuine LF 2' ~ 0.536 f^4 "
+              f"(4 - 2*sqrt(3) = {4.0 - 2.0 * math.sqrt(3.0):.5f}); 'I3322-LF (2,3)' ~ f^8 / 4")
+        extended_records = {
+            "f_grid": survey_grid.tolist(),
+            "excess_violation_mu_1": {name: vals.tolist() for name, vals in survey.items()},
+        }
+
     if args.save_json:
         payload = {
             "f_grid": f_grid.tolist(),
@@ -824,6 +898,8 @@ def main() -> None:
             "bilateral_chsh_max_overshoot": worst_overshoot,
             "bilateral_chsh_max_saturation_gap": worst_saturation_gap,
         }
+        if extended_records is not None:
+            payload["extended_classes"] = extended_records
         with open(args.save_json, "w", encoding="utf-8") as fp:
             json.dump(payload, fp, indent=2)
         print(f"\n[OK] Exported JSON verification summary to: {args.save_json}")
