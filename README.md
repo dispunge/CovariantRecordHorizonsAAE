@@ -46,23 +46,27 @@ This repository provides **independent, reproducible verification** of the manus
 ├── requirements.txt                         # NumPy, SciPy, and Matplotlib dependencies
 ├── .github/workflows/
 │   ├── lean_action_ci.yml                   # Lean and Mathlib verification
-│   └── manuscript_build.yml                 # Figure generation and PDF build
+│   ├── manuscript_build.yml                 # Figure generation and PDF build
+│   └── release.yml                          # Tagged GitHub Release and arXiv bundle builder
 ├── lean/
 │   ├── lakefile.toml                        # Lake package and Mathlib dependency
 │   ├── lake-manifest.json                   # Resolved Lake dependency revisions
 │   ├── lean-toolchain                       # Pinned Lean 4 toolchain
+│   ├── README.md                            # Lean package build instructions
 │   ├── CovariantRecordHorizons.lean         # Lean library root
 │   └── CovariantRecordHorizons/
 │       ├── LFPolytope.lean                 # Kernel-checked polytope/rank proofs
 │       └── LFQuantumBounds.lean            # Mathlib real-algebra proofs
 ├── manuscript/
 │   ├── main.tex                             # RevTeX manuscript driver
-│   ├── Makefile                             # Clean rebuild and incremental build targets
+│   ├── Makefile                             # Clean rebuild, audit, and incremental targets
 │   ├── build.sh                             # Cross-platform convenience wrapper
+│   ├── README.md                            # Manuscript build documentation
 │   ├── sections/                            # Individual section .tex sources
 │   ├── bibliography/references.bib          # BibTeX reference database
 │   ├── figures/                             # Generated PDF/PNG publication figures
 │   └── data/lf_verification_results.json    # Generated numerical verification data
+├── CITATION.cff                             # GitHub & Zenodo citation metadata (CFF 1.2.0)
 ├── README.md
 └── LICENSE                                  # Repository license
 ```
@@ -177,7 +181,7 @@ If you use or fork this verification suite in your research, please cite:
 ```bibtex
 @article{baker2026covariant,
   title   = {Covariant Record Horizons and the Abandonment of Absolute Events},
-  author  = {TODO: Author Name(s)},
+  author  = {Baker, Kevin J.},
   journal = {arXiv preprint arXiv:TODO.XXXXX},
   year    = {2026}
 }

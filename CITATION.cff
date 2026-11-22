@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use or extend this verification suite, please cite it using the metadata below."
+title: "Covariant Record Horizons and the Abandonment of Absolute Events: Verification Suite"
+type: software
+authors:
+  - family-names: "Baker"
+    given-names: "Kevin J."
+    orcid: "https://orcid.org/0009-0002-4464-6391"
+repository-code: "https://github.com/Synchronicity89/CovariantRecordHorizonsAAE"
+license: MIT
+abstract: >-
+  Companion Python numerical optimization suite (lf_leak_tests.py) and Lean 4
+  machine-checked formal proofs (LFPolytope.lean, LFQuantumBounds.lean) for
+  "Covariant Record Horizons and the Abandonment of Absolute Events".
+keywords:
+  - quantum foundations
+  - Wigner's friend
+  - Local Friendliness
+  - algebraic quantum field theory
+  - Lean 4

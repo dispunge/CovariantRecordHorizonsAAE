@@ -1,0 +1,145 @@
+name: Release & arXiv Package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-release:
+    name: Verify Proofs, Build PDF & Package Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Lean 4 formal proofs
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          export PATH="$HOME/.elan/bin:$PATH"
+          cd lean
+          lake exe cache get
+          lake build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Install TeX Live (REVTeX 4.2 & latexmk)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-pictures \
+            texlive-publishers \
+            texlive-science \
+            texlive-fonts-recommended \
+            texlive-bibtex-extra \
+            latexmk \
+            poppler-utils
+
+      - name: Build figures, verification JSON, and manuscript PDF
+        run: |
+          if [ -x manuscript/build.sh ]; then
+            (cd manuscript && ./build.sh)
+          else
+            make -C manuscript
+          fi
+
+          # Ensure figure and JSON outputs exist in manuscript/ even if generated at root
+          mkdir -p manuscript/figures manuscript/data
+          if [ -f lf_leakage_bounds.pdf ] && [ ! -s manuscript/figures/lf_leakage_bounds.pdf ]; then
+            cp -f lf_leakage_bounds.pdf manuscript/figures/
+          fi
+          if [ -f lf_leakage_bounds.png ] && [ ! -s manuscript/figures/lf_leakage_bounds.png ]; then
+            cp -f lf_leakage_bounds.png manuscript/figures/
+          fi
+          if [ -f lf_verification_results.json ] && [ ! -s manuscript/data/lf_verification_results.json ]; then
+            cp -f lf_verification_results.json manuscript/data/
+          fi
+
+          # If build.sh/Makefile cleaned intermediate .bbl, regenerate main.bbl for arXiv
+          if [ ! -s manuscript/main.bbl ]; then
+            (
+              cd manuscript
+              pdflatex -interaction=nonstopmode -halt-on-error main.tex
+              bibtex main
+              pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            )
+          fi
+
+          test -s manuscript/main.pdf
+          test -s manuscript/main.bbl
+          test -s manuscript/figures/lf_leakage_bounds.pdf
+          test -s manuscript/figures/lf_leakage_bounds.png
+          test -s manuscript/data/lf_verification_results.json
+
+      - name: Assemble and sandbox-test arXiv .tar.gz bundle
+        run: |
+          VERSION="${GITHUB_REF_NAME:-dryrun}"
+          STAGE_DIR="$(mktemp -d)"
+          SANDBOX_DIR="$(mktemp -d)"
+          mkdir -p dist "$STAGE_DIR/sections" "$STAGE_DIR/figures"
+
+          # Copy ONLY files permitted/required by arXiv AutoTeX (no .bib, no main.pdf)
+          cp manuscript/main.tex "$STAGE_DIR/"
+          cp manuscript/main.bbl "$STAGE_DIR/"
+          cp manuscript/sections/*.tex "$STAGE_DIR/sections/"
+          cp manuscript/figures/lf_leakage_bounds.pdf "$STAGE_DIR/figures/"
+
+          # Create flat-rooted tarball expected by arXiv
+          tar -czf "dist/arxiv-submission-${VERSION}.tar.gz" -C "$STAGE_DIR" main.tex main.bbl sections figures
+
+          # Simulate arXiv's server: compile from tarball using ONLY pdflatex (no bibtex)
+          tar -xzf "dist/arxiv-submission-${VERSION}.tar.gz" -C "$SANDBOX_DIR"
+          (
+            cd "$SANDBOX_DIR"
+            pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            if grep -E "LaTeX Warning: (Reference|Citation).*undefined|There were undefined" main.log; then
+              echo "ERROR: Undefined citations or references in arXiv sandbox build!"
+              exit 1
+            fi
+          )
+
+          # Stage standalone unzipped release assets
+          cp manuscript/main.pdf "dist/CovariantRecordHorizons-${VERSION}.pdf"
+          cp manuscript/figures/lf_leakage_bounds.pdf "dist/lf_leakage_bounds.pdf"
+          cp manuscript/figures/lf_leakage_bounds.png "dist/lf_leakage_bounds.png"
+          cp manuscript/data/lf_verification_results.json "dist/lf_verification_results.json"
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+
+      - name: Upload dry-run preview artifact (manual runs only)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dryrun-preview
+          path: dist/*
+
+      - name: Publish GitHub Release with unzipped assets (tag pushes)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/CovariantRecordHorizons-${{ github.ref_name }}.pdf
+            dist/arxiv-submission-${{ github.ref_name }}.tar.gz
+            dist/lf_leakage_bounds.pdf
+            dist/lf_leakage_bounds.png
+            dist/lf_verification_results.json
+            dist/SHA256SUMS.txt
