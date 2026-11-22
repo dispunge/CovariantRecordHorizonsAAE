@@ -99,7 +99,7 @@ python3 lf_leak_tests.py
 python3 lf_leak_tests.py --plot --save-json lf_verification_results.json
 ```
 This produces `lf_leakage_bounds.pdf` and `lf_leakage_bounds.png`, illustrating:
-* **Panel (a):** Quantum violation excess $\Delta S(f) = S_{\max}(f) - B_{\mathrm{LF}}$ across coherence retention $f \in [0, 1]$ for all five canonical EWFS inequalities (`Semi-Brukner`, `Brukner`, `Bell non-LF`, `I3322-LF`, and `Genuine LF`).
+* **Panel (a):** Quantum excess $\Delta S(f) = S_{\max}(f) - B$ over the tabulated bound $B$ across coherence retention $f \in [0, 1]$ for the five functionals `Semi-Brukner`, `Brukner`, `Bell non-LF`, `I3322-LF`, and `Genuine LF`. For `Bell non-LF`, $B = 2$ is the Bell bound; its LF bound is 4, so that curve shows Bell nonlocality, not an LF violation.
 * **Panel (b):** Log-log asymptotic scaling in the high-leakage limit ($f \to 0, \ell \to 1$), demonstrating the sharp split between **quadratic** One-Friend excess $\Delta S \simeq f^2$ and **quartic** Two-Friend suppression $\Delta S = \mathcal{O}(f^4)$ (closely tracking the collinear lower bound $\Delta S_{2\mathrm{F}}^{\mathrm{col}} = f^4 / (1 + f^2)$ as $f \to 0$).
 
 **Restrict state optimization to maximally entangled Bell states ($|\Phi^+\rangle$):**
@@ -172,9 +172,9 @@ Because humans and cats are far too messy to isolate, physicists test these idea
 Think of this repository as a two-part engine that checks the paper's math from two independent angles:
 
 1. **The Python Simulator (`lf_leak_tests.py`) — Testing Leaky Quantum Labs:**  
-   The paper derives formulas predicting how much "leakage" a quantum processor can suffer before the signature quantum effect disappears. The Python code simulates thousands of measurement angles and noise levels across real experimental test formulas. One of its coolest findings is a huge difficulty jump: testing **one** isolated quantum "Friend" is fairly forgiving when a little information leaks out, whereas testing **two** isolated quantum "Friends" at the same time is drastically harder—any tiny leak crushes the quantum signal exponentially faster (scaling like $f^4$ instead of $f^2$). That tells experimentalists exactly how clean their quantum chips need to be to see the effect.
+   The paper derives formulas predicting how much "leakage" a quantum processor can suffer before the signature quantum effect disappears. The Python code simulates thousands of measurement angles and noise levels across real experimental test formulas. One of its coolest findings is a huge difficulty jump: testing **one** isolated quantum "Friend" is fairly forgiving when a little information leaks out, whereas testing **two** isolated quantum "Friends" at the same time is drastically harder—any leak suppresses the quantum signal far more strongly (scaling like $f^4$ instead of $f^2$). That tells experimentalists exactly how clean their quantum chips need to be to see the effect.
 2. **The Lean 4 Proof-Checker (`lean/`) — Bulletproof Math Verification:**  
-   Traditionally, scientists check math proofs by reading them line by line, which means subtle human errors can occasionally slip past reviewers. **Lean 4** is a specialized programming language where mathematical theorems are written as code: if even a tiny logical step is flawed or incomplete, the computer refuses to compile the file. The Lean files in this repository check all 96 geometric corners of the quantum test rules and verify the core algebraic inequalities step-by-step, giving readers 100% mathematical certainty without having to take the algebra on faith.
+   Traditionally, scientists check math proofs by reading them line by line, which means subtle human errors can occasionally slip past reviewers. **Lean 4** is a specialized programming language where mathematical theorems are written as code: if even a tiny logical step is flawed or incomplete, the computer refuses to compile the file. The Lean files in this repository check all 96 geometric corners of the quantum test rules and verify the algebraic identities behind the paper's lower bound step-by-step, so readers do not have to take those parts on faith. (The paper's main operator theorem is checked numerically here, not yet in Lean.)
 
 ---
 
@@ -183,11 +183,12 @@ Think of this repository as a two-part engine that checks the paper's math from 
 If you use or fork this verification suite in your research, please cite:
 
 ```bibtex
-@article{baker2026covariant,
-  title   = {Covariant Record Horizons and the Abandonment of Absolute Events},
-  author  = {Baker, Kevin J.},
-  journal = {arXiv preprint arXiv:TODO.XXXXX},
-  year    = {2026}
+@misc{baker2026covariant,
+  title     = {Covariant Record Horizons and the Abandonment of Absolute Events},
+  author    = {Baker, Kevin J.},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.24435914}
 }
 ```
 

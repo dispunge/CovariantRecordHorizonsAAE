@@ -33,6 +33,7 @@ import itertools
 import json
 import math
 from dataclasses import dataclass
+from fractions import Fraction
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -181,6 +182,39 @@ def generate_lhv_and_lf_vertices() -> Tuple[np.ndarray, np.ndarray]:
     return lhv_arr, lf_arr
 
 
+def exact_rank(rows: np.ndarray) -> int:
+    """
+    Exact matrix rank over Q by fraction-based Gaussian elimination.
+    Vertex coordinates are integers in {-1, 0, +1}, so no rounding is involved;
+    this is the arithmetic the manuscript's Table I refers to.
+    """
+    mat = [[Fraction(int(round(float(x)))) for x in row] for row in rows]
+    rank = 0
+    n_cols = len(mat[0]) if mat else 0
+    for col in range(n_cols):
+        pivot = next((i for i in range(rank, len(mat)) if mat[i][col] != 0), None)
+        if pivot is None:
+            continue
+        mat[rank], mat[pivot] = mat[pivot], mat[rank]
+        for i in range(len(mat)):
+            if i != rank and mat[i][col] != 0:
+                factor = mat[i][col] / mat[rank][col]
+                mat[i] = [x - factor * y for x, y in zip(mat[i], mat[rank])]
+        rank += 1
+    return rank
+
+
+def tight_homogeneous_rank(tight_vertices: np.ndarray) -> int:
+    """Exact rank of the tight vertices in homogeneous coordinates [1, v] in R^16."""
+    if len(tight_vertices) == 0:
+        return 0
+    hom = np.column_stack([np.ones(len(tight_vertices)), tight_vertices])
+    rank = exact_rank(hom)
+    # Floating-point cross-check of the exact result.
+    assert rank == int(np.linalg.matrix_rank(hom)), "exact and floating-point ranks disagree"
+    return rank
+
+
 @dataclass
 class PolytopeCheckResult:
     name: str
@@ -212,14 +246,8 @@ def verify_polytope_structure(
         lhv_tight = lhv_verts[np.isclose(lhv_vals, ineq.bound, atol=1e-9)]
         lf_tight = lf_verts[np.isclose(lf_vals, ineq.bound, atol=1e-9)]
 
-        lhv_rank = (
-            int(np.linalg.matrix_rank(np.column_stack([np.ones(len(lhv_tight)), lhv_tight])))
-            if len(lhv_tight) > 0 else 0
-        )
-        lf_rank = (
-            int(np.linalg.matrix_rank(np.column_stack([np.ones(len(lf_tight)), lf_tight])))
-            if len(lf_tight) > 0 else 0
-        )
+        lhv_rank = tight_homogeneous_rank(lhv_tight)
+        lf_rank = tight_homogeneous_rank(lf_tight)
 
         is_bell_facet = math.isclose(lhv_max, ineq.bound, abs_tol=1e-9) and (lhv_rank == 15)
         is_lf_facet = math.isclose(lf_max, ineq.bound, abs_tol=1e-9) and (lf_rank == 15)
@@ -503,7 +531,7 @@ def maybe_generate_plots(
     styles = {
         "Semi-Brukner": ("#1f77b4", "-", "Semi-Brukner (1-Friend, CHSH)"),
         "Brukner": ("#ff7f0e", "--", "Brukner (2-Friend)"),
-        "Bell non-LF": ("#7f7f7f", ":", "Bell non-LF (2-Friend uncomputed)"),
+        "Bell non-LF": ("#7f7f7f", ":", "Bell non-LF (2-Friend; excess over Bell bound 2)"),
         "I3322-LF": ("#2ca02c", "-.", "I3322-LF (2-Friend, 3-setting)"),
         "Genuine LF": ("#d62728", "-", "Genuine LF (Bong et al. facet)"),
     }
@@ -514,7 +542,7 @@ def maybe_generate_plots(
         color, ls, label = styles[name]
         ax0.plot(f_grid, np.maximum(0.0, curve), color=color, linestyle=ls, lw=2.0, label=label)
     ax0.set_xlabel(r"Coherence retention $f = \vert{}\langle e_+ \vert{} e_- \rangle\vert{}$")
-    ax0.set_ylabel(r"Quantum violation excess $\Delta S = S_{\max}(f) - B_{\mathrm{LF}}$")
+    ax0.set_ylabel(r"Quantum excess $\Delta S = S_{\max}(f) - B$ over the Table I bound")
     ax0.set_title("(a) Violation Excess Across Coherence Retention")
     ax0.grid(True, alpha=0.3)
     ax0.legend(fontsize=8.5, loc="upper left")
