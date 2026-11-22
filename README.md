@@ -1,5 +1,6 @@
 # Covariant Record Horizons and the Abandonment of Absolute Events
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24435914.svg)](https://doi.org/10.5281/zenodo.24435914)
 [![arXiv](https://img.shields.io/badge/arXiv-TODO.XXXXX%20%5Bquant--ph%5D-b31b1b.svg)](https://arxiv.org/abs/TODO.XXXXX)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](https://www.python.org/)
 [![Lean 4](https://img.shields.io/badge/Verified%20in-Lean%204-5A67D8.svg)](https://lean-lang.org/)
@@ -8,7 +9,8 @@
 Companion numerical simulation and formal machine-checked verification repository for the manuscript:
 
 > **Covariant Record Horizons and the Abandonment of Absolute Events**  
-> Preprint: `arXiv:TODO.XXXXX [quant-ph]` *(link active upon public timestamp)*
+> **Author:** Kevin J. Baker ([ORCID: 0009-0002-4464-6391](https://orcid.org/0009-0002-4464-6391))  
+> **Preprint:** [doi:10.5281/zenodo.24435914](https://doi.org/10.5281/zenodo.24435914) · `arXiv:TODO.XXXXX [quant-ph]` *(link active upon public timestamp)*
 
 ---
 
@@ -98,7 +100,7 @@ python3 lf_leak_tests.py --plot --save-json lf_verification_results.json
 ```
 This produces `lf_leakage_bounds.pdf` and `lf_leakage_bounds.png`, illustrating:
 * **Panel (a):** Quantum violation excess $\Delta S(f) = S_{\max}(f) - B_{\mathrm{LF}}$ across coherence retention $f \in [0, 1]$ for all five canonical EWFS inequalities (`Semi-Brukner`, `Brukner`, `Bell non-LF`, `I3322-LF`, and `Genuine LF`).
-* **Panel (b):** Log-log asymptotic scaling in the high-leakage limit ($f \to 0, \ell \to 1$), demonstrating the sharp split between **quadratic** One-Friend excess $\Delta S \simeq f^2$ and **quartic** Two-Friend excess $\Delta S \simeq f^4 / (1 + f^2)$.
+* **Panel (b):** Log-log asymptotic scaling in the high-leakage limit ($f \to 0, \ell \to 1$), demonstrating the sharp split between **quadratic** One-Friend excess $\Delta S \simeq f^2$ and **quartic** Two-Friend suppression $\Delta S = \mathcal{O}(f^4)$ (closely tracking the collinear lower bound $\Delta S_{2\mathrm{F}}^{\mathrm{col}} = f^4 / (1 + f^2)$ as $f \to 0$).
 
 **Restrict state optimization to maximally entangled Bell states ($|\Phi^+\rangle$):**
 ```bash

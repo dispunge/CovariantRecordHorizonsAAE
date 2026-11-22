@@ -94,7 +94,7 @@ Summing Eqs.~\eqref{eq:K_squared} and~\eqref{eq:S1S2_squares} cancels the commut
 \begin{equation}\label{eq:sos_identity}
 4(1 + f^2)\mathbf{1} - K(f)^2 = S_1^* S_1 + S_2^* S_2,
 \end{equation}
-since $N_+^2 + N_-^2 = \mathbf{1}$ and $D_-^2 + D_+^2 = 4\mathbf{1}$. For every state $\omega$ on $\mathfrak{A}$, positivity guarantees $\omega(S_1^* S_1) \ge 0$ and $\omega(S_2^* S_2) \ge 0$, so $|\omega(K(f))|^2 \le \omega(K(f)^2) \le 4(1 + f^2)$, proving Eq.~\eqref{eq:theorem1_bound}. The bound is saturated on a two-qubit Bell state $|\Phi^+\rangle$ by choosing $A_1 = \sigma_z$, $N = \sigma_x$ ($N_+ = 0, N_- = \sigma_x$), and $B_{2,3} = \mp \cos\varphi\,\sigma_z + \sin\varphi\,\sigma_x$ with $\tan\varphi = f$.
+since $N_+^2 + N_-^2 = \mathbf{1}$ and $D_-^2 + D_+^2 = 4\mathbf{1}$. For every state $\omega$ on $\mathfrak{A}$, positivity guarantees $\omega(S_1^* S_1) \ge 0$ and $\omega(S_2^* S_2) \ge 0$, so $|\omega(K(f))|^2 \le \omega(K(f)^2) \le 4(1 + f^2)$, proving Eq.~\eqref{eq:theorem1_bound}. The bound is saturated on a two-qubit Bell state $|\Phi^+\rangle$ by choosing $A_1 = \sigma_z$, $N = \sigma_x$ ($N_+ = 0, N_- = \sigma_x$), and $B_{2,3} = \mp \cos\varphi\,\sigma_z - \sin\varphi\,\sigma_x$ with $\varphi = \arctan f$.
 \end{proof}
 
 \subsection{Bilateral Two-Friend Dephasing and Quartic $\mathcal{O}(f^4)$ Suppression}
@@ -128,7 +128,9 @@ A qualitatively harsher scaling emerges in genuine two-friend scenarios where \e
         (a)~Comparison across all five canonical $(3,3,2,2)$ inequalities of Bong \emph{et al.}~\cite{bong2020}.
         (b)~Log-log scaling in the high-leakage regime ($f \to 0$, $\ell \to 1$), illustrating the
         transition from quadratic One-Friend excess $\Delta S \simeq f^2$ (Semi-Brukner) to quartic
-        Two-Friend suppression $\Delta S \simeq f^4/(1 + f^2)$ (Brukner and Genuine LF).%
+        Two-Friend suppression $\Delta S = \mathcal{O}(f^4)$, closely tracking the collinear lower
+        bound $\Delta S_{2\mathrm{F}}^{\mathrm{col}} = f^4/(1+f^2)$ for $f \lesssim 0.4$ before
+        tilted-axis enhancements emerge at larger $f$.%
     }
     \label{fig:lf_leakage_bounds}
 \end{figure*}
@@ -142,9 +144,9 @@ B_{\max}^{\mathrm{Bruk}}(f, \mu) &= \mu \max_{\theta_A, \delta \in [0, \pi]} \Bi
     &\qquad + (1 - f^2)\bigl(\vec{v}_-(\theta_A) \cdot \hat{u}_D(\delta)\bigr)^2 \bigr]^{1/2} \Bigr\},
 \end{aligned}
 \end{equation}
-where $\vec{v}_\pm(\theta_A) = (-f\sin\theta_A, 0, \mp 1 - \cos\theta_A)$. On the collinear friend branch ($\delta = 0$), Eq.~\eqref{eq:brukner_closed_form} reduces to $\mu [1 + c + \sqrt{(1 - c)^2 + f^4(1 - c^2)}]$ for $c = \cos\theta_A$, whose exact maximum occurs at $c^* = 1/(1 + f^2)$ and equals $\mu [2 + f^4/(1 + f^2)]$ identically, suppressing excess violation from $\mathcal{O}(f^2)$ down to $\mathcal{O}(f^4)$ throughout the high-leakage regime before crossing over to tilted friend axes ($\delta > 0$) at larger $f$.
+where $\vec{v}_\pm(\theta_A) = (-f\sin\theta_A, 0, \mp 1 - \cos\theta_A)$. On the collinear friend branch ($\delta = 0$), Eq.~\eqref{eq:brukner_closed_form} reduces to $\mu\bigl[1 + c + \sqrt{(1-c)^2 + f^4(1-c^2)}\bigr]$ for $c = \cos\theta_A$, whose exact collinear maximum occurs at $c^* = 1/(1+f^2)$ and yields the analytical lower bound $\mu\bigl[2 + f^4/(1+f^2)\bigr]$. Because the $\delta$-gradient at $(\theta_A^*, \delta=0)$ equals $2f^4\sqrt{2+f^2}/(1+f^2)^2 > 0$, optimal friend axes tilt smoothly as $\delta^*(f) \simeq \sqrt{2}f^4$ for all $f > 0$, contributing only a $+\,2f^8$ correction at small $f$ (so $\Delta S_{\mathrm{Bruk}}(f) = f^4/(1+f^2) + \mathcal{O}(f^8)$ is asymptotically exact through $\mathcal{O}(f^6)$) before producing substantial tilted-axis gains at moderate-to-high coherence ($+8.3\%$ at $f=0.50$ and $+40.3\%$ at $f=0.80$).
 
-Crucially, the exact same quartic law governs Bong \emph{et al.}'s genuine LF facet $S_{\mathrm{GLF}} \le 6$:
+Crucially, the exact same collinear quartic lower bound governs Bong \emph{et al.}'s genuine LF facet $S_{\mathrm{GLF}} \le 6$:
 
 \begin{proposition}[Quartic Violation of Genuine LF]
 At unit visibility ($\mu = 1$), the maximum quantum value $S_{\max}^{\mathrm{GLF}}(f)$ of Eq.~\eqref{eq:ineq_glf} under symmetric coherence retention $f \in (0, 1]$ satisfies
@@ -159,20 +161,20 @@ Prepare $|\Phi^+\rangle$ (so all single-party marginals vanish) and choose X--Z 
 \end{proof}
 
 \begin{table*}[t]
-\caption{Exact closed-form comparison between the One-Friend Semi-Brukner excess $\Delta S_{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} - 2$ and the analytical collinear Two-Friend excess $\Delta S_{\mathrm{2F}}^{\mathrm{col}}(f) = f^4/(1 + f^2)$ (shared by both Two-Friend Brukner and Genuine LF prior to the high-$f$ tilted-axis crossover shown in Fig.~\ref{fig:lf_leakage_bounds}) at unit visibility ($\mu = 1$).}
+\caption{Comparison between the exact One-Friend Semi-Brukner excess $\Delta S_{\mathrm{SB}}(f) = 2\sqrt{1+f^2}-2$, the analytical collinear Two-Friend lower bound $\Delta S_{2\mathrm{F}}^{\mathrm{col}}(f) = f^4/(1+f^2)$, and the globally optimized Two-Friend Brukner ($\Delta S_{\mathrm{Bruk}}$) and Genuine LF ($\Delta S_{\mathrm{GLF}}$) excesses at unit visibility ($\mu = 1$).}
 \label{tab:scaling_comparison}
 \begin{ruledtabular}
-\begin{tabular}{cccccc}
-$f$ & $\ell = \sqrt{1 - f^2}$ & $\Delta S_{\mathrm{SB}}(f)$ (1-Friend) & $\Delta S_{\mathrm{2F}}^{\mathrm{col}}(f) = f^4/(1 + f^2)$ & Ratio $\Delta S_{\mathrm{2F}}^{\mathrm{col}} / \Delta S_{\mathrm{SB}}$ & Physical Regime \\
+\begin{tabular}{ccccccc}
+$f$ & $\ell = \sqrt{1-f^2}$ & $\Delta S_{\mathrm{SB}}$ (1F) & $\Delta S_{2\mathrm{F}}^{\mathrm{col}}$ (LB) & $\Delta S_{\mathrm{Bruk}}$ & $\Delta S_{\mathrm{GLF}}$ & Physical Regime \\
 \colrule
-$0.00$ & $1.000$ & $+0.000000$ & $+0.000000$ & ---      & Classical horizon limit ($\ell = 1$) \\
-$0.10$ & $0.995$ & $+0.009975$ & $+0.000099$ & $0.0099$ & Deep quartic suppression ($\mathcal{O}(f^4)$) \\
-$0.20$ & $0.980$ & $+0.039608$ & $+0.001538$ & $0.0388$ & $25\times$ bilateral leakage penalty \\
-$0.50$ & $0.866$ & $+0.236068$ & $+0.050000$ & $0.2118$ & Onset of tilted-axis crossover \\
-$0.80$ & $0.600$ & $+0.561250$ & $+0.249756$ & $0.4450$ & Moderate coherence retention \\
-$1.00$ & $0.000$ & $+0.828427$ & $+0.500000$ & $0.6036$ & Unitary limit (tilted global max $> \Delta S_{\mathrm{2F}}^{\mathrm{col}}$) \\
+$0.00$ & $1.000$ & $+0.000000$ & $+0.000000$ & $+0.000000$ & $+0.000000$ & Classical horizon limit ($\ell = 1$) \\
+$0.10$ & $0.995$ & $+0.009975$ & $+0.000099$ & $+0.000099$ & $+0.000099$ & Asymptotic quartic regime ($\mathcal{O}(f^4)$) \\
+$0.20$ & $0.980$ & $+0.039608$ & $+0.001538$ & $+0.001543$ & $+0.001562$ & ${\sim}25\times$ bilateral leakage penalty \\
+$0.50$ & $0.866$ & $+0.236068$ & $+0.050000$ & $+0.054146$ & $+0.054343$ & Tilted-axis gain ($+8.3\%$ over $\Delta S_{2\mathrm{F}}^{\mathrm{col}}$) \\
+$0.80$ & $0.600$ & $+0.561250$ & $+0.249756$ & $+0.350521$ & $+0.299933$ & Strong non-collinear tilt ($+40.3\%$ gain) \\
+$1.00$ & $0.000$ & $+0.828427$ & $+0.500000$ & $+0.828427$ & $+1.344912$ & Unitary limit (Tsirelson / LF max) \\
 \end{tabular}
 \end{ruledtabular}
 \end{table*}
 
-Figure~\ref{fig:lf_leakage_bounds} and Table~\ref{tab:scaling_comparison} display the global numerical optimization across all five Bong \emph{et al.} inequalities alongside these analytical benchmarks. As seen in Fig.~\ref{fig:lf_leakage_bounds}(a) and~(b), when $98\%$ of record distinguishability leaks into unreversed modes ($\ell \approx 0.980, f = 0.20$), One-Friend Semi-Brukner retains a nearly $0.04$ violation excess, whereas Two-Friend Brukner and Genuine LF drop by a factor of $25$ to $+0.00154$. Under realistic quantum-processor visibility $\mu < 1$, Semi-Brukner remains violable whenever $\mu > 1/\sqrt{2} \approx 0.7071$ above critical coherence $f_{\mathrm{crit}}^{\mathrm{SB}}(\mu) = \sqrt{\mu^{-2} - 1}$ (tolerating leakage up to $\ell_{\max}^{\mathrm{SB}}(\mu) = \sqrt{2 - \mu^{-2}}$), whereas Genuine LF requires substantially higher baseline fidelity and near-unit branch coherence ($f_{\mathrm{crit}}^{\mathrm{GLF}} > 0.95$ at $\mu = 0.92$ on maximally entangled states), opening a broad experimental window in which one-friend and Bell inequalities are violated while genuine two-friend LF facets remain strictly satisfied.
+Figure~\ref{fig:lf_leakage_bounds} and Table~\ref{tab:scaling_comparison} display the global numerical optimization across all five Bong \emph{et al.} inequalities alongside these analytical benchmarks. As seen in Fig.~\ref{fig:lf_leakage_bounds}(a) and~(b), when $98\%$ of record distinguishability leaks into unreversed modes ($\ell \approx 0.980, f = 0.20$), One-Friend Semi-Brukner retains a nearly $0.04$ violation excess, whereas Two-Friend Brukner and Genuine LF drop by a factor of $25$ to $+0.00154$--$0.00156$. Under realistic quantum-processor visibility $\mu < 1$, Semi-Brukner remains violable whenever $\mu > 1/\sqrt{2} \approx 0.7071$ above critical coherence $f_{\mathrm{crit}}^{\mathrm{SB}}(\mu) = \sqrt{\mu^{-2} - 1}$ (tolerating leakage up to $\ell_{\max}^{\mathrm{SB}}(\mu) = \sqrt{2 - \mu^{-2}}$), whereas Genuine LF requires substantially higher baseline fidelity and near-unit branch coherence ($f_{\mathrm{crit}}^{\mathrm{GLF}} \approx 0.892$, $\ell_{\max}^{\mathrm{GLF}} \approx 0.453$ versus $f_{\mathrm{crit}}^{\mathrm{SB}} \approx 0.426$, $\ell_{\max}^{\mathrm{SB}} \approx 0.905$ at $\mu = 0.92$, rising to $f_{\mathrm{crit}}^{\mathrm{GLF}} \approx 0.937$ at $\mu = 0.88$ under isotropic depolarizing noise), opening a broad experimental window in which one-friend and Bell inequalities are violated while genuine two-friend LF facets remain strictly satisfied.
