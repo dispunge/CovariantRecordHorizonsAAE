@@ -6,7 +6,7 @@ authors:
   - family-names: "Baker"
     given-names: "Kevin J."
     orcid: "https://orcid.org/0009-0002-4464-6391"
-repository-code: "https://github.com/Synchronicity89/CovariantRecordHorizonsAAE"
+repository-code: "https://github.com/dispunge/CovariantRecordHorizonsAAE"
 license: MIT
 abstract: >-
   Companion Python numerical optimization suite (lf_leak_tests.py) and Lean 4

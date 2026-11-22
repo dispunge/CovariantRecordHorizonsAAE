@@ -47,7 +47,9 @@ This repository provides **independent, reproducible verification** of the manus
 ├── .github/workflows/
 │   ├── lean_action_ci.yml                   # Lean and Mathlib verification
 │   ├── manuscript_build.yml                 # Figure generation and PDF build
-│   └── release.yml                          # Tagged GitHub Release and arXiv bundle builder
+│   └── release.yml                          # Tagged GitHub Release, arXiv & Zenodo publisher
+├── scripts/
+│   └── publish_zenodo.py                    # Zenodo Deposit REST API release publisher
 ├── lean/
 │   ├── lakefile.toml                        # Lake package and Mathlib dependency
 │   ├── lake-manifest.json                   # Resolved Lake dependency revisions
