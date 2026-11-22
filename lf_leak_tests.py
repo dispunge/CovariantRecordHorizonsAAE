@@ -6,13 +6,14 @@ Numerical verification suite for:
 "Covariant Record Horizons and the Abandonment of Absolute Events"
 
 Verifies:
-1. Polytope bounds and affine facet ranks (in R^15) across all 5 canonical
-   inequality classes of Bong et al., Nature Physics 16, 1199-1205 (2020),
+1. Polytope bounds and affine facet ranks (in R^15) for one representative of
+   each of the five inequality categories tested by Bong et al., Nature
+   Physics 16, 1199-1205 (2020) (their full list has nine facet classes),
    confirming from first principles that 'Genuine LF' is a true facet of the
    (3,3,2,2) Local Friendliness polytope (rank 15) and NOT a Bell/LHV facet.
 2. Exact analytical coherence-retention bound B_max(f) = 2 * sqrt(1 + f^2)
    = 2 * sqrt(2 - ell^2) for the One-Friend Semi-Brukner inequality, where
-   f = |<e_0|e_1>| in [0, 1] is coherence retention and ell = sqrt(1 - f^2)
+   f = |<e_+|e_->| in [0, 1] is coherence retention and ell = sqrt(1 - f^2)
    is environmental record leakage.
 3. Bilateral Two-Friend dephasing across Brukner, Bell non-LF, I3322-LF, and
    Genuine LF facets, demonstrating the transition from quadratic excess
@@ -24,6 +25,7 @@ Verifies:
 Usage:
     python3 lf_leak_tests.py
     python3 lf_leak_tests.py --plot --save-json lf_verification_results.json
+    python3 lf_leak_tests.py --grid-points 11      # coarse, faster sweep
 """
 
 from __future__ import annotations
@@ -34,7 +36,7 @@ import json
 import math
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from scipy.optimize import brentq, minimize
@@ -412,7 +414,7 @@ def optimize_quantum_bound_sweep(
     f_grid: np.ndarray,
     mu: float = 1.0,
     fix_maximally_entangled: bool = False,
-    n_random_starts: int = 20,
+    n_random_starts: Union[int, Sequence[int]] = 20,
     seed: int = 42,
 ) -> np.ndarray:
     """
@@ -421,9 +423,17 @@ def optimize_quantum_bound_sweep(
       2. Seeded 3D random multi-starts,
       3. Bidirectional homotopy continuation (sweeping 0 -> 1 and 1 -> 0)
          so sharp branch crossovers near small f are resolved accurately.
+    `n_random_starts` is either one count for every grid point or one count
+    per grid point.
     """
     rng = np.random.default_rng(seed)
     n_pts = len(f_grid)
+    if isinstance(n_random_starts, int):
+        starts_per_point = [n_random_starts] * n_pts
+    else:
+        starts_per_point = [int(n) for n in n_random_starts]
+        if len(starts_per_point) != n_pts:
+            raise ValueError("n_random_starts must have one entry per grid point")
     best_vals = np.full(n_pts, -np.inf)
     best_params: List[Optional[np.ndarray]] = [None] * n_pts
 
@@ -442,7 +452,7 @@ def optimize_quantum_bound_sweep(
         candidates = build_analytical_warm_starts(ineq, float(f_val))
         if prev_opt is not None:
             candidates.append(prev_opt)
-        for _ in range(n_random_starts):
+        for _ in range(starts_per_point[idx]):
             rnd = rng.uniform(-math.pi, math.pi, size=13)
             rnd[0] = rng.uniform(0.05, math.pi / 2.0 - 0.05)
             candidates.append(rnd)
@@ -550,10 +560,11 @@ def maybe_generate_plots(
     # Panel B: Log-log asymptotic scaling near high leakage (f -> 0, ell -> 1)
     ax1 = axes[1]
     mask = (f_grid > 0.04) & (f_grid <= 0.65)
+    marker = "o" if len(f_grid) <= 21 else None  # a fine grid needs no point markers
     for name in ["Semi-Brukner", "Brukner", "Genuine LF"]:
         color, ls, label = styles[name]
         vals = np.maximum(1e-12, excess_curves[name][mask])
-        ax1.loglog(f_grid[mask], vals, color=color, linestyle=ls, lw=2.2, marker="o", ms=4, label=label)
+        ax1.loglog(f_grid[mask], vals, color=color, linestyle=ls, lw=2.2, marker=marker, ms=4, label=label)
 
     # Reference slopes O(f^2) and O(f^4)
     f_ref = f_grid[mask]
@@ -578,7 +589,12 @@ def main() -> None:
     parser.add_argument("--save-json", type=str, default="", help="Optional path to export JSON summary")
     parser.add_argument("--maximally-entangled-only", action="store_true",
                         help="Fix |Phi+> (vartheta=pi/4) instead of optimizing general Schmidt states")
+    parser.add_argument("--grid-points", type=int, default=51,
+                        help="Number of f samples on [0, 1] for the mu = 1 sweep and the figure; must be "
+                             "10*k + 1 so that the 0.1-spaced table rows lie on the grid (default: 51)")
     args = parser.parse_args()
+    if args.grid_points < 11 or (args.grid_points - 1) % 10 != 0:
+        parser.error("--grid-points must be of the form 10*k + 1 (11, 21, 51, 101, ...)")
 
     inequalities = get_bong_2020_inequalities()
 
@@ -591,12 +607,23 @@ def main() -> None:
           f"{'LHV Rank':>9} {'LF Rank':>8} {'Bell Facet?':>12} {'LF Facet?':>10}")
     print("-" * 86)
     for pr in poly_results:
+        # Where the LF maximum exceeds the bound, the hyperplane cuts through the LF
+        # polytope and a "tight rank" has no meaning (printed as --- as in Table I).
+        lf_valid = pr.lf_max <= pr.bound + 1e-9
+        lf_rank_txt = f"{pr.lf_tight_rank:8d}" if lf_valid else f"{'---':>8}"
         print(f"{pr.name:<15} {pr.bound:6.1f} {pr.lhv_max:8.1f} {pr.lf_max:8.1f} "
-              f"{pr.lhv_tight_rank:9d} {pr.lf_tight_rank:8d} "
+              f"{pr.lhv_tight_rank:9d} {lf_rank_txt} "
               f"{str(pr.is_bell_facet):>12} {str(pr.is_lf_facet):>10}")
 
     # --- Step 2: Coherence-Retention Sweep at Pure State Visibility (mu = 1.0) ---
-    f_grid = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    # The 0.1-spaced points are the ones tabulated below and in the manuscript; they
+    # keep the full set of random starts. The points in between only refine the
+    # figure (e.g. the Genuine LF branch switch near f = 0.85) and use fewer,
+    # relying on the analytical seeds and the two continuation passes.
+    f_grid = np.linspace(0.0, 1.0, args.grid_points)
+    table_stride = (args.grid_points - 1) // 10
+    table_idx = list(range(0, len(f_grid), table_stride))
+    starts_schedule = [24 if idx % table_stride == 0 else 8 for idx in range(len(f_grid))]
     raw_curves: Dict[str, np.ndarray] = {}
     excess_curves: Dict[str, np.ndarray] = {}
 
@@ -606,7 +633,7 @@ def main() -> None:
             f_grid,
             mu=1.0,
             fix_maximally_entangled=args.maximally_entangled_only,
-            n_random_starts=24,
+            n_random_starts=starts_schedule,
         )
         raw_curves[ineq.name] = vals
         excess_curves[ineq.name] = vals - ineq.bound
@@ -626,14 +653,16 @@ def main() -> None:
 
     print("\n" + "=" * 86)
     print("3. EXCESS QUANTUM VIOLATION Delta S = S_max(f) - Bound ACROSS LEAKAGE")
-    print("   (f = |<e_0|e_1>| coherence retention, ell = sqrt(1 - f^2) record leakage)")
+    print("   (f = |<e_+|e_->| coherence retention, ell = sqrt(1 - f^2) record leakage)")
+    print(f"   (rows at 0.1 spacing; all {len(f_grid)} grid points go to the figure and the JSON export)")
     print("=" * 86)
     header = (f"{'f':>5} {'ell':>6} | {'Semi-Brukner':>13} {'Brukner (2F)':>13} "
               f"{'Bell non-LF':>12} {'I3322-LF':>11} {'Genuine LF':>12}")
     print(header)
     print("-" * 86)
-    for idx, f_val in enumerate(f_grid):
-        ell_val = math.sqrt(max(0.0, 1.0 - float(f_val) ** 2))
+    for idx in table_idx:
+        f_val = float(f_grid[idx])
+        ell_val = math.sqrt(max(0.0, 1.0 - f_val ** 2))
         print(
             f"{f_val:5.2f} {ell_val:6.3f} | "
             f"{excess_curves['Semi-Brukner'][idx]:+13.6f} "
@@ -676,7 +705,12 @@ def main() -> None:
         payload = {
             "f_grid": f_grid.tolist(),
             "ell_grid": np.sqrt(np.maximum(0.0, 1.0 - f_grid ** 2)).tolist(),
-            "polytope_checks": [pr.__dict__ for pr in poly_results],
+            # No LF rank where the bound is not valid for LF (Bell non-LF), as in Table I.
+            "polytope_checks": [
+                {**pr.__dict__,
+                 "lf_tight_rank": pr.lf_tight_rank if pr.lf_max <= pr.bound + 1e-9 else None}
+                for pr in poly_results
+            ],
             "semi_brukner_max_abs_err": sb_max_err,
             "brukner_max_abs_err": bruk_max_err,
             "excess_violation_mu_1": {k: v.tolist() for k, v in excess_curves.items()},

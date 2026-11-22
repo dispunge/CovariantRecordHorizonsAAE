@@ -93,6 +93,7 @@ python -m pip install -r requirements.txt
 ```bash
 python3 lf_leak_tests.py
 ```
+The default sweep samples $f$ at 51 points, which resolves the `Genuine LF` branch switch near $f \approx 0.85$; the whole run takes on the order of five minutes on a single core. `--grid-points 11` restores the coarse 0.1-spaced sweep (about a quarter less time), and `--grid-points 101` gives a smoother figure. The tabulated 0.1-spaced rows are the same in every case.
 
 **Generate publication PDF/PNG figures and export JSON data:**
 ```bash

@@ -19,7 +19,7 @@ Other commands:
 ./build.sh rebuild  # default; clean, regenerate figures/JSON, compile, and audit
 ./build.sh build    # clean stale aux files, compile existing inputs, and audit
 ./build.sh figures  # regenerate and copy figures and JSON only
-./build.sh audit    # verify zero undefined refs/citations, clean BibTeX, and layout bounds
+./build.sh audit    # verify zero undefined refs/citations, clean BibTeX, layout bounds, and no Type 3 fonts
 ./build.sh clean    # remove generated and LaTeX build artifacts
 ```
 

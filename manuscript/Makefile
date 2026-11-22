@@ -75,6 +75,14 @@ audit:
 			echo "OK: Replaced with Code and Data Availability."; \
 		fi; \
 	fi
+	@if command -v pdffonts >/dev/null 2>&1; then \
+		if pdffonts $(OUTPUT) | grep -q "Type 3"; then \
+			pdffonts $(OUTPUT) | grep "Type 3"; \
+			echo "ERROR: Type 3 fonts in $(OUTPUT) (bitmap TeX fonts or matplotlib's default); their text does not extract or search reliably." >&2; exit 1; \
+		else \
+			echo "OK: No Type 3 fonts in $(OUTPUT)."; \
+		fi; \
+	fi
 
 rebuild: clean figures build
 
