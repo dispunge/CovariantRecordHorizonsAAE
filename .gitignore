@@ -79,6 +79,7 @@ Thumbs.db
 **/*.fls
 **/*.log
 **/*.out
+**/*Notes.bib
 **/*.run.xml
 **/*.synctex.gz
 **/*.toc

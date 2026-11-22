@@ -53,7 +53,6 @@ This repository provides **independent, reproducible verification** of the manus
 │   ├── lean-toolchain                       # Pinned Lean 4 toolchain
 │   ├── CovariantRecordHorizons.lean         # Lean library root
 │   └── CovariantRecordHorizons/
-│       ├── Basic.lean
 │       ├── LFPolytope.lean                 # Kernel-checked polytope/rank proofs
 │       └── LFQuantumBounds.lean            # Mathlib real-algebra proofs
 ├── manuscript/
