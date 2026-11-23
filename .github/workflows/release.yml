@@ -72,6 +72,9 @@ jobs:
           if [ -f lf_verification_results.json ] && [ ! -s manuscript/data/lf_verification_results.json ]; then
             cp -f lf_verification_results.json manuscript/data/
           fi
+          if [ -f lf_noise_budget.pdf ] && [ ! -s manuscript/figures/lf_noise_budget.pdf ]; then
+            cp -f lf_noise_budget.pdf manuscript/figures/
+          fi
 
           # If build.sh/Makefile cleaned intermediate .bbl, regenerate main.bbl for arXiv
           if [ ! -s manuscript/main.bbl ]; then
@@ -87,6 +90,7 @@ jobs:
           test -s manuscript/main.bbl
           test -s manuscript/figures/lf_leakage_bounds.pdf
           test -s manuscript/figures/lf_leakage_bounds.png
+          test -s manuscript/figures/lf_noise_budget.pdf
           test -s manuscript/data/lf_verification_results.json
 
       - name: Assemble and sandbox-test arXiv .tar.gz bundle
@@ -101,6 +105,7 @@ jobs:
           cp manuscript/main.bbl "$STAGE_DIR/"
           cp manuscript/sections/*.tex "$STAGE_DIR/sections/"
           cp manuscript/figures/lf_leakage_bounds.pdf "$STAGE_DIR/figures/"
+          cp manuscript/figures/lf_noise_budget.pdf "$STAGE_DIR/figures/"
 
           # Create flat-rooted tarball expected by arXiv
           tar -czf "dist/arxiv-submission-${VERSION}.tar.gz" -C "$STAGE_DIR" main.tex main.bbl sections figures

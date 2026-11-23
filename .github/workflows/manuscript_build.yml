@@ -51,4 +51,7 @@ jobs:
           path: |
             manuscript/figures/lf_leakage_bounds.pdf
             manuscript/figures/lf_leakage_bounds.png
+            manuscript/figures/lf_noise_budget.pdf
+            manuscript/figures/lf_noise_budget.png
             manuscript/data/lf_verification_results.json
+            manuscript/data/lf_noise_budget.json

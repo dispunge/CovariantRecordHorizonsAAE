@@ -37,6 +37,7 @@ This repository provides **independent, reproducible verification** of the manus
 | Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ | `lf_leak_tests.py` | Analytical benchmark vs. multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
 | Scope of the two-friend results: Brukner bound in every dimension (Jordan's lemma), failure of the quartic law for the other functionals under coarse-grained friend measurements, constant-outcome reduction of $I_{3322}$ | `lf_dimension_checks.py` | Seesaw search (explicit strategies, i.e. lower bounds) in local dimension 2, 3 and 4 |
 | Two-qubit product bound $S \le 2\mu\sqrt{1 + f_A^2 f_B^2}$ for the CHSH-type functionals (Proposition 2) and the two-lab threshold $f_{\mathrm{crit}} = (\mu^{-2} - 1)^{1/4}$ | `lf_leak_tests.py` (section 5 of the console report) | Multi-start optimization at nine $(f_A, f_B)$ pairs: no value above the bound, `Bell non-LF` and two-friend `Semi-Brukner` on it to $10^{-12}$; closed form vs. `brentq` thresholds |
+| Noise budget for circuit implementations: setting-dependent visibilities, exact relaxed LF bounds under readout error (linear program), one-friend closed form $2\mu\eta_0\sqrt{\eta_1^2 + \eta_2^2 f^2}$, critical gate and readout errors for the one-friend, Brukner and Genuine LF tests | `lf_noise_budget.py` | Density-matrix simulation of the circuit vs. visibility factors ($< 10^{-12}$), sum-of-squares identity on random matrices, linear program with dual certificates for the relaxed bounds, seesaw search (explicit strategies) with bisection for the thresholds |
 
 *(Note: Relativistic horizon soft-graviton/soft-photon ceilings following Danielson, Satishchandran, and Wald are treated analytically in the manuscript text and are not simulated here.)*
 
@@ -47,6 +48,8 @@ This repository provides **independent, reproducible verification** of the manus
 ```text
 .
 ├── lf_leak_tests.py                         # Numerical verifier and optimization suite
+├── lf_dimension_checks.py                   # Seesaw checks beyond two qubits and rank-one measurements
+├── lf_noise_budget.py                       # Circuit-level noise budget and device lookup
 ├── requirements.txt                         # NumPy, SciPy, and Matplotlib dependencies
 ├── .github/workflows/
 │   ├── lean_action_ci.yml                   # Lean and Mathlib verification
@@ -122,6 +125,18 @@ python3 lf_dimension_checks.py
 ```
 Every printed number is the value of an explicit strategy. The table shows that the Brukner optimum does not grow with dimension, that a coarse-grained friend measurement on a larger system lets the other two-friend functionals escape the quartic law, and that for $I_{3322}$ a constant-outcome observable beats the rank-one optimum below $f \approx 0.83$ (`lf_leak_tests.py` takes that reduction into account for the figure).
 
+**Noise budget for a circuit implementation** (two-qubit gate error, readout error and record leakage together; about three minutes with the figure):
+```bash
+python3 lf_noise_budget.py --plot --save-json lf_noise_budget.json
+```
+The model is one friend qubit per laboratory, a CNOT for the friend's measurement and for its reversal, two-qubit depolarizing noise after every entangling gate, dephasing of the record with coherence retention $f$, and a symmetric readout error $\varepsilon$ that both lowers the visibilities and loosens the LF bounds. The script first checks the model against a density-matrix simulation of the circuit, then prints the largest gate error at which each of the three tests (`Semi-Brukner` with one friend, `Brukner` and `Genuine LF` with two) is still violated, and writes `lf_noise_budget.pdf`/`.png`. One-friend numbers are exact; two-friend numbers compare explicit strategies with exact relaxed bounds, so the true tolerances can only be larger.
+
+**Look up one device:**
+```bash
+python3 lf_noise_budget.py --r2q 0.004 --eps 0.01 --f 0.98
+```
+`--r2q` is the average two-qubit gate infidelity, `--eps` the readout assignment error, `--f` the coherence retention of the record (for a record held for a time $t$, $f = e^{-t/T_{\varphi,S} - t/T_{\varphi,F}}$ with the pure-dephasing times of the system and friend qubits). The output lists, for each test, the best value found, the relaxed LF bound, the margin, and a shot-noise estimate of the shots needed for five standard deviations. Energy relaxation, coherent errors, crosstalk and multi-qubit friends are not modelled.
+
 ---
 
 ### 2. Formal Machine-Checked Proofs (Lean 4)
@@ -154,7 +169,7 @@ This builds both modules and formally verifies `genuineLF_bloch_normalization` a
 ## Forking & Extending This Repository
 
 This repository is designed to be forked and adapted for experimental and theoretical follow-up work:
-* **Custom Quantum Hardware Noise Models:** Replace the isotropic Werner state visibility parameter `mu` in `evaluate_ewfs_quantum_value()` (`lf_leak_tests.py`) with asymmetric $T_1 / T_2$ relaxation, spectator-qubit crosstalk, or mid-circuit ancilla readout confusion matrices calibrated to specific superconducting or trapped-ion processors.
+* **Custom Quantum Hardware Noise Models:** `lf_noise_budget.py` is the starting point. Its `visibilities()` and `noisy_observable()` encode Pauli noise as setting-dependent visibility factors, and `behaviour_circuit()` is the density-matrix simulation they are checked against; extend the latter with $T_1$ relaxation, spectator-qubit crosstalk, or readout confusion matrices calibrated to a specific processor, and use it directly where the noise is no longer a visibility.
 * **Asymmetric Bilateral Leakage ($f_A \neq f_B$):** Pass `f_bob` to `evaluate_ewfs_quantum_value()` or `optimize_quantum_bound_sweep()` in `lf_leak_tests.py` to give Bob's laboratory its own coherence retention (section 5 of the console report does this for the CHSH-type functionals), e.g. when modeling hybrid photonic-matter EWFS setups.
 * **Higher-Setting Polytopes:** Extend `Corr15` in `LFPolytope.lean` and `EWFSIInequality` in `lf_leak_tests.py` to test $(4,4,2,2)$ or sequential multi-friend facets.
 
