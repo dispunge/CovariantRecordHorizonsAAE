@@ -35,6 +35,7 @@ This repository provides **independent, reproducible verification** of the manus
 | Strict violation of `Genuine LF` for all $f \in (0, 1]$ with quartic excess $S_{\mathrm{GLF}}(f) \ge 6 + \frac{f^4}{1 + f^2}$ | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`genuineLF_quartic_excess`) | Formal real-algebra proof in Lean 4 + `Mathlib` (zero `sorry`) |
 | $\mathcal{O}(f^2)$ (One-Friend) vs. $\mathcal{O}(f^4)$ (Two-Friend) suppression & Werner visibility thresholds $f_{\mathrm{crit}}(\mu)$ | `lf_leak_tests.py` | Bidirectional homotopy `L-BFGS-B` sweeps + `brentq` root-finding |
 | Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ | `lf_leak_tests.py` | Analytical benchmark vs. multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
+| Scope of the two-friend results: Brukner bound in every dimension (Jordan's lemma), failure of the quartic law for the other functionals under coarse-grained friend measurements, constant-outcome reduction of $I_{3322}$ | `lf_dimension_checks.py` | Seesaw search (explicit strategies, i.e. lower bounds) in local dimension 2, 3 and 4 |
 | Two-qubit product bound $S \le 2\mu\sqrt{1 + f_A^2 f_B^2}$ for the CHSH-type functionals (Proposition 2) and the two-lab threshold $f_{\mathrm{crit}} = (\mu^{-2} - 1)^{1/4}$ | `lf_leak_tests.py` (section 5 of the console report) | Multi-start optimization at nine $(f_A, f_B)$ pairs: no value above the bound, `Bell non-LF` and two-friend `Semi-Brukner` on it to $10^{-12}$; closed form vs. `brentq` thresholds |
 
 *(Note: Relativistic horizon soft-graviton/soft-photon ceilings following Danielson, Satishchandran, and Wald are treated analytically in the manuscript text and are not simulated here.)*
@@ -113,7 +114,13 @@ python3 lf_leak_tests.py --maximally-entangled-only
 ```bash
 python3 lf_leak_tests.py --extended-classes
 ```
-This prints their facet checks and the excess at a few values of $f$, with the ratios to $f^4$ and $f^8$ (numerically $\approx 0.536 f^4$ and $\approx f^8/4$ as $f \to 0$).
+This prints their facet checks and the excess at a few values of $f$ for rank-one projective measurements. These are lower bounds, not maxima: a constant-outcome observable can do better (see the next command).
+
+**Check the two-qubit, rank-one restrictions** (seesaw search over measurements of any rank in local dimension 2, 3 and 4; about a minute):
+```bash
+python3 lf_dimension_checks.py
+```
+Every printed number is the value of an explicit strategy. The table shows that the Brukner optimum does not grow with dimension, that a coarse-grained friend measurement on a larger system lets the other two-friend functionals escape the quartic law, and that for $I_{3322}$ a constant-outcome observable beats the rank-one optimum below $f \approx 0.83$ (`lf_leak_tests.py` takes that reduction into account for the figure).
 
 ---
 

@@ -169,6 +169,8 @@ def get_additional_lf_classes() -> List[EWFSIInequality]:
     Representatives of the two non-trivial LF facet classes of Bong et al. (2020)
     that the manuscript does not analyze (their enumeration has nine classes:
     two genuine LF, two I3322, Brukner, Semi-Brukner and three positivity classes).
+    The survey built on them optimizes over rank-one projective measurements only and
+    therefore yields lower bounds (see lf_dimension_checks.py for measurements of any rank).
     Both are checked to be LF facets by verify_polytope_structure(). The first is
     not a Bell facet (LHV rank 14), which separates it from 'Genuine LF' (LHV
     rank 12); in the second the friend-readout setting is the one without a
@@ -731,6 +733,17 @@ def main() -> None:
         raw_curves[ineq.name] = vals
         excess_curves[ineq.name] = vals - ineq.bound
 
+    # The Bloch-vector parametrization covers rank-one projective measurements only. For
+    # I3322-LF a constant-outcome observable on each side does better at strong leakage:
+    # with A3 = +1 and B2 = -1 the functional becomes 2 + (E11 - E13 - E21 - E23), a
+    # Brukner-type CHSH expression (flip the sign of A1 and rename B3 -> B2 to obtain the
+    # Brukner functional above), so its maximum is 2 + the Brukner maximum.
+    i3322_rank_one_excess = excess_curves["I3322-LF"].copy()
+    raw_curves["I3322-LF"] = np.maximum(raw_curves["I3322-LF"], 2.0 + raw_curves["Brukner"])
+    excess_curves["I3322-LF"] = raw_curves["I3322-LF"] - 4.0
+    i3322_switch = [float(f) for f, a, b in zip(f_grid, i3322_rank_one_excess, excess_curves["I3322-LF"])
+                    if b > a + 1e-9]
+
     # Analytical benchmark comparisons
     sb_exact = np.array([analytical_semi_brukner(float(f)) for f in f_grid])
     sb_max_err = float(np.max(np.abs(raw_curves["Semi-Brukner"] - sb_exact)))
@@ -764,6 +777,10 @@ def main() -> None:
             f"{excess_curves['I3322-LF'][idx]:+11.6f} "
             f"{excess_curves['Genuine LF'][idx]:+12.6f}"
         )
+    if i3322_switch:
+        print(f"I3322-LF: for f <= {max(i3322_switch):.2f} the value shown is the constant-outcome reduction "
+              "2 + Brukner,")
+        print("          which exceeds the rank-one optimum there (both are in the JSON export).")
 
     # --- Step 3: Critical Coherence Thresholds Under Hardware Visibility mu < 1 ---
     print("\n" + "=" * 86)
@@ -855,7 +872,8 @@ def main() -> None:
     if args.extended_classes:
         print("\n" + "=" * 86)
         print("6. EXTENDED SURVEY: REMAINING NON-TRIVIAL LF FACET CLASSES (mu = 1.0, both labs leaky)")
-        print("   (numerical only; these two classes are not analyzed in the manuscript)")
+        print("   (rank-one projective measurements only, hence LOWER bounds: a constant-outcome")
+        print("    observable can do better, see lf_dimension_checks.py; not analyzed in the manuscript)")
         print("=" * 86)
         extra = get_additional_lf_classes()
         for pr in verify_polytope_structure(extra):
@@ -871,8 +889,10 @@ def main() -> None:
             cells = [f"{survey[iq.name][idx]:+22.6e} {survey[iq.name][idx] / f_val ** 4:9.5f} "
                      f"{survey[iq.name][idx] / f_val ** 8:9.3f}" for iq in extra]
             print(f"{f_val:5.2f} | " + " | ".join(cells))
-        print("Small-f reading (numerical, not proved): 'Genuine LF 2' ~ 0.536 f^4 "
-              f"(4 - 2*sqrt(3) = {4.0 - 2.0 * math.sqrt(3.0):.5f}); 'I3322-LF (2,3)' ~ f^8 / 4")
+        print("Within rank-one measurements: 'Genuine LF 2' ~ 0.536 f^4 "
+              f"(4 - 2*sqrt(3) = {4.0 - 2.0 * math.sqrt(3.0):.5f}) and 'I3322-LF (2,3)' ~ f^8 / 4.")
+        print("The second is not the maximum: measurements of any rank reach at least about 0.3 f^4")
+        print("(lf_dimension_checks.py).")
         extended_records = {
             "f_grid": survey_grid.tolist(),
             "excess_violation_mu_1": {name: vals.tolist() for name, vals in survey.items()},
@@ -891,6 +911,7 @@ def main() -> None:
             "semi_brukner_max_abs_err": sb_max_err,
             "brukner_max_abs_err": bruk_max_err,
             "excess_violation_mu_1": {k: v.tolist() for k, v in excess_curves.items()},
+            "i3322_rank_one_excess_mu_1": i3322_rank_one_excess.tolist(),
             "visibility_thresholds_werner": threshold_records,
             "bilateral_thresholds_closed_form": bilateral_threshold_records,
             "genuine_lf_thresholds_general_states": glf_general_records,
