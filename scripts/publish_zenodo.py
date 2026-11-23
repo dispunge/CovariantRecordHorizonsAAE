@@ -20,6 +20,17 @@ USER_AGENT = (
     "CovariantRecordHorizons-ReleaseCI/1.0 "
     "(+https://github.com/dispunge/CovariantRecordHorizonsAAE)"
 )
+DEFAULT_TITLE = (
+    "Record Leakage in Local Friendliness Tests: "
+    "Randomness Trade-off, Two-Friend Bounds, and Noise Budgets"
+)
+DEFAULT_DESCRIPTION = (
+    "Companion Python numerical optimization and circuit noise-budget suite "
+    "(lf_leak_tests.py, lf_noise_budget.py, lf_dimension_checks.py) and Lean 4 "
+    "machine-checked formal proofs (LFPolytope.lean, LFQuantumBounds.lean) for "
+    '"Record Leakage in Local Friendliness Tests: Randomness Trade-off, '
+    'Two-Friend Bounds, and Noise Budgets".'
+)
 
 
 def api_request(
@@ -112,6 +123,8 @@ def main() -> int:
     parser.add_argument("--source-zip", required=True, type=pathlib.Path, help="Clean git archive zip")
     parser.add_argument("--extra-file", action="append", default=[], type=pathlib.Path)
     parser.add_argument("--repo-url", default="https://github.com/dispunge/CovariantRecordHorizonsAAE")
+    parser.add_argument("--title", default=DEFAULT_TITLE, help="Zenodo record title for the published version")
+    parser.add_argument("--description", default=DEFAULT_DESCRIPTION, help="Zenodo record description")
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs & API read access without publishing")
     args = parser.parse_args()
 
@@ -181,6 +194,10 @@ def main() -> int:
     clean_ver = args.version.lstrip("v")
     meta["version"] = clean_ver
     meta["publication_date"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
+    if args.title:
+        meta["title"] = args.title
+    if args.description:
+        meta["description"] = args.description
 
     # Strip null subfields in creators/related_identifiers and read-only relations key
     meta.pop("relations", None)

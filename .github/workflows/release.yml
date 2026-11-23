@@ -75,6 +75,12 @@ jobs:
           if [ -f lf_noise_budget.pdf ] && [ ! -s manuscript/figures/lf_noise_budget.pdf ]; then
             cp -f lf_noise_budget.pdf manuscript/figures/
           fi
+          if [ -f lf_noise_budget.png ] && [ ! -s manuscript/figures/lf_noise_budget.png ]; then
+            cp -f lf_noise_budget.png manuscript/figures/
+          fi
+          if [ -f lf_noise_budget.json ] && [ ! -s manuscript/data/lf_noise_budget.json ]; then
+            cp -f lf_noise_budget.json manuscript/data/
+          fi
 
           # If build.sh/Makefile cleaned intermediate .bbl, regenerate main.bbl for arXiv
           if [ ! -s manuscript/main.bbl ]; then
@@ -91,7 +97,9 @@ jobs:
           test -s manuscript/figures/lf_leakage_bounds.pdf
           test -s manuscript/figures/lf_leakage_bounds.png
           test -s manuscript/figures/lf_noise_budget.pdf
+          test -s manuscript/figures/lf_noise_budget.png
           test -s manuscript/data/lf_verification_results.json
+          test -s manuscript/data/lf_noise_budget.json
 
       - name: Assemble and sandbox-test arXiv .tar.gz bundle
         run: |
@@ -129,7 +137,10 @@ jobs:
             --output="dist/CovariantRecordHorizonsAAE-${VERSION}.zip" HEAD
           cp manuscript/figures/lf_leakage_bounds.pdf "dist/lf_leakage_bounds.pdf"
           cp manuscript/figures/lf_leakage_bounds.png "dist/lf_leakage_bounds.png"
+          cp manuscript/figures/lf_noise_budget.pdf "dist/lf_noise_budget.pdf"
+          cp manuscript/figures/lf_noise_budget.png "dist/lf_noise_budget.png"
           cp manuscript/data/lf_verification_results.json "dist/lf_verification_results.json"
+          cp manuscript/data/lf_noise_budget.json "dist/lf_noise_budget.json"
           (cd dist && sha256sum * > SHA256SUMS.txt)
 
       - name: Dry-run Zenodo check (manual runs only)
@@ -139,9 +150,11 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME:-dryrun}"
           EXTRA_ARGS=()
-          if [ -s dist/lf_verification_results.json ]; then
-            EXTRA_ARGS+=(--extra-file dist/lf_verification_results.json)
-          fi
+          for extra in dist/lf_verification_results.json dist/lf_noise_budget.json dist/lf_leakage_bounds.pdf dist/lf_noise_budget.pdf; do
+            if [ -s "$extra" ]; then
+              EXTRA_ARGS+=(--extra-file "$extra")
+            fi
+          done
           python3 scripts/publish_zenodo.py \
             --dry-run \
             --record-id "${{ vars.ZENODO_RECORD_ID || '24435915' }}" \
@@ -168,7 +181,10 @@ jobs:
             dist/arxiv-submission-${{ github.ref_name }}.tar.gz
             dist/lf_leakage_bounds.pdf
             dist/lf_leakage_bounds.png
+            dist/lf_noise_budget.pdf
+            dist/lf_noise_budget.png
             dist/lf_verification_results.json
+            dist/lf_noise_budget.json
             dist/SHA256SUMS.txt
 
       - name: Publish compiled PDF and source archive to Zenodo (tag pushes)
@@ -177,12 +193,11 @@ jobs:
           ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
         run: |
           EXTRA_ARGS=()
-          if [ -s dist/lf_verification_results.json ]; then
-            EXTRA_ARGS+=(--extra-file dist/lf_verification_results.json)
-          fi
-          if [ -s dist/lf_leakage_bounds.pdf ]; then
-            EXTRA_ARGS+=(--extra-file dist/lf_leakage_bounds.pdf)
-          fi
+          for extra in dist/lf_verification_results.json dist/lf_noise_budget.json dist/lf_leakage_bounds.pdf dist/lf_noise_budget.pdf; do
+            if [ -s "$extra" ]; then
+              EXTRA_ARGS+=(--extra-file "$extra")
+            fi
+          done
           python3 scripts/publish_zenodo.py \
             --record-id "${{ vars.ZENODO_RECORD_ID || '24435915' }}" \
             --version "${{ github.ref_name }}" \

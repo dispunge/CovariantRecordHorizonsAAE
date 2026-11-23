@@ -9,7 +9,8 @@ authors:
 repository-code: "https://github.com/dispunge/CovariantRecordHorizonsAAE"
 license: MIT
 abstract: >-
-  Companion Python numerical optimization suite (lf_leak_tests.py) and Lean 4
+  Companion Python numerical optimization and circuit noise-budget suite
+  (lf_leak_tests.py, lf_noise_budget.py, lf_dimension_checks.py) and Lean 4
   machine-checked formal proofs (LFPolytope.lean, LFQuantumBounds.lean) for
   "Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets".
 keywords:
