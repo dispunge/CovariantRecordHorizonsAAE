@@ -1,0 +1,119 @@
+% !TEX root = ../main.tex
+\section{Noise Budgets for Circuit Implementations}
+\label{sec:noise_budget}
+
+The coherence retention $f$ is one of four imperfections in a processor implementation of an EWFS, and the other three do not reduce to the common visibility $\mu$ of Sec.~\ref{sec:polytope_bounds}. This section puts them into one model and asks, for given device parameters, which test is violated and with what margin.
+
+\subsection{Circuit model}
+
+Each laboratory with a friend consists of a system qubit $S$ and a friend qubit $F$ prepared in $|0\rangle$. The friend's measurement is a CNOT from $S$ to $F$, as in the hardware demonstration of Ref.~\cite{laux2026} (Ref.~\cite{zeng2024} considers friends of many qubits). We follow every entangling gate by two-qubit depolarizing noise $\rho \mapsto (1-\lambda)\rho + \lambda\,\mathbb{I}_4/4$, which corresponds to an average gate infidelity $r = 3\lambda/4$. The record then dephases with coherence retention $f$ as in Eq.~\eqref{eq:polarity_convention}; for a record held for a time $t$ on qubits with pure-dephasing times $T_{\varphi,S}$ and $T_{\varphi,F}$, $f = \exp(-t/T_{\varphi,S} - t/T_{\varphi,F})$. For $x = 1$ the superobserver reads $F$ with symmetric assignment error $\varepsilon$. For $x \in \{2, 3\}$ the CNOT is applied a second time and $S$ is measured along a chosen axis with the same assignment error. A laboratory without a friend measures $S$ directly, and the entangled pair is prepared with one entangling gate, so that $\mu = 1 - \lambda$.
+
+In the Heisenberg picture the noise multiplies the observables of Sec.~\ref{sec:polytope_bounds} by factors that depend on the setting,
+\begin{equation}
+\begin{aligned}
+    A_1 &\to \eta_1 A_1, & \eta_1 &= (1-\lambda)(1-2\varepsilon), \\
+    \Phi_f(N_x) &\to \eta_2\,\Phi_f(N_x), & \eta_2 &= (1-\lambda)^2(1-2\varepsilon),
+\end{aligned}
+\label{eq:visibilities}
+\end{equation}
+and by $\eta_0 = 1 - 2\varepsilon$ in a laboratory without a friend. The reversal settings pay for two entangling gates and the friend's outcome for one, so gate noise is not equivalent to a rescaling of the state. A setting on which a party outputs a constant needs no qubit and is taken to be noise-free. We have checked Eq.~\eqref{eq:visibilities} against a density-matrix simulation of the circuit (\texttt{lf\_noise\_budget.py}).
+
+\subsection{Relaxed Local Friendliness bounds}
+
+Readout error also enters the inequalities themselves. The LF derivation identifies the superobserver's outcome for $x = 1$ with the friend's outcome, $A_1 = c$; with an imperfect reading this holds only up to $P(a \neq c \,|\, x = 1, y) \le \varepsilon_A$, and likewise $P(b \neq d \,|\, y = 1, x) \le \varepsilon_B$. Moreno \emph{et al.}~\cite{moreno2022} introduced this relaxation, and Laux and Cavalcanti~\cite{laux2026} used the resulting bound $2 + 4\varepsilon$ for a one-friend test on a superconducting processor. For a general LF inequality $\sum_x \alpha_x \langle A_x \rangle + \sum_y \beta_y \langle B_y \rangle + \sum_{x,y} J_{xy} \langle A_x B_y \rangle \le B$, the exact relaxed bound is the maximum of the left-hand side over joint distributions $P(a, b, c, d \,|\, x, y)$ that satisfy Local Agency and the two conditions above, which is a linear program. An analytic bound follows from replacing $a$ by $c$ for $x = 1$ and $b$ by $d$ for $y = 1$: the result is a behavior inside $\mathcal{P}_{\mathrm{LF}}$, and every term that contains $A_1$ ($B_1$) changes by at most $2\varepsilon_A$ ($2\varepsilon_B$) times the modulus of its coefficient, because $|\langle (a - c)\,b \rangle| \le 2P(a \neq c)$. Hence
+\begin{equation}
+\begin{gathered}
+    S \le B + 2\kappa_A \varepsilon_A + 2\kappa_B \varepsilon_B, \\
+    \kappa_A = |\alpha_1| + \sum_y |J_{1y}|, \qquad \kappa_B = |\beta_1| + \sum_x |J_{x1}|.
+\end{gathered}
+\label{eq:relaxed_bound}
+\end{equation}
+Equation~\eqref{eq:relaxed_bound} is tight for the one-friend $S_{\mathrm{SB}}$, where it reproduces $2 + 4\varepsilon_A$, but not for the two-friend functionals, for which it gives $2 + 4(\varepsilon_A + \varepsilon_B)$ and $6 + 8(\varepsilon_A + \varepsilon_B)$. The linear program yields instead
+\begin{equation}
+\begin{aligned}
+    S_{\mathrm{Bruk}} &\le 2 + 4\min(\varepsilon_A, \varepsilon_B), \\
+    S_{\mathrm{GLF}} &\le 6 + 4(\varepsilon_A + \varepsilon_B),
+\end{aligned}
+\label{eq:relaxed_exact}
+\end{equation}
+which we have verified on a grid of $\varepsilon_A, \varepsilon_B \le 1/4$ together with dual certificates (\texttt{lf\_noise\_budget.py}). The Brukner value has a direct explanation. If $b = d$ holds exactly, then $d$ and $B_2$ are jointly distributed in every run with $y = 2$, and $S_{\mathrm{Bruk}}$ admits a local model with hidden variable $(d, b_2)$ whatever the relation between $a$ and $c$. The Brukner inequality therefore needs only one of the two identifications, and correcting the better of the two readings costs at most $4\min(\varepsilon_A, \varepsilon_B)$. In the circuit model $\varepsilon_A = \varepsilon_B = \varepsilon$, so the relaxed bounds are $2 + 4\varepsilon$ for both CHSH-type tests and $6 + 8\varepsilon$ for Genuine LF.
+
+\subsection{One friend: closed form}
+
+For the one-friend test the optimum is available in closed form. With $K_\eta = \eta_1 A_1 (B_3 - B_2) - \eta_2 (N_+ + f N_-)(B_3 + B_2)$ and the notation of Theorem~1, the identity~\eqref{eq:sos_identity} generalizes to
+\begin{equation}
+\begin{aligned}
+    4(\eta_1^2 + \eta_2^2 f^2)\mathbf{1} - K_\eta^2 &= \tilde{S}_1^* \tilde{S}_1 + \tilde{S}_2^* \tilde{S}_2, \\
+    \tilde{S}_1 &= \eta_2 f D_- + \eta_1 A_1 N_- D_+, \\
+    \tilde{S}_2 &= \bigl[\eta_1^2 - (1 - f^2)\eta_2^2\bigr]^{1/2} N_+ D_+,
+\end{aligned}
+\label{eq:sos_noisy}
+\end{equation}
+which requires $(1 - f^2)\eta_2^2 \le \eta_1^2$ and therefore holds throughout the model, where $\eta_2 \le \eta_1$. Consequently $|\omega(K_\eta)| \le 2\sqrt{\eta_1^2 + \eta_2^2 f^2}$ in every state and every dimension. In the circuit model, strategies in which all settings are measured obey
+\begin{equation}
+    S_{\mathrm{SB}} \le 2\mu\,\eta_0\sqrt{\eta_1^2 + \eta_2^2 f^2} = 2\mu\,\eta_0\eta_1\sqrt{1 + (1-\lambda)^2 f^2},
+    \label{eq:sb_noisy}
+\end{equation}
+with equality for the strategy of Theorem~1 at $\varphi = \arctan(\eta_2 f/\eta_1)$, and strategies with constant outputs do not exceed the bound $2$. An imperfect reversal gate thus acts exactly like additional leakage, $f \to (1-\lambda) f$, on top of an overall loss of visibility. With $\mu = 1 - \lambda$, the relaxed one-friend inequality is violated if and only if
+\begin{equation}
+    (1-\lambda)^2 (1-2\varepsilon)^2 \sqrt{1 + (1-\lambda)^2 f^2} > 1 + 2\varepsilon.
+    \label{eq:sb_noisy_condition}
+\end{equation}
+
+\begin{figure*}[t]
+    \centering
+    \IfFileExists{figures/lf_noise_budget.pdf}{%
+        \includegraphics[width=\textwidth]{figures/lf_noise_budget.pdf}%
+    }{%
+        \fbox{\parbox{0.94\textwidth}{\centering\vspace{1.1cm}%
+        \textbf{Figure placeholder:} Generate \texttt{lf\_noise\_budget.pdf} via
+        \texttt{python3 lf\_noise\_budget.py -{}-plot} and copy it to \texttt{manuscript/figures/lf\_noise\_budget.pdf}.%
+        \vspace{1.1cm}}}%
+    }
+    \caption{%
+        Noise budget in the circuit model of Sec.~\ref{sec:noise_budget}: one friend qubit per laboratory,
+        depolarizing parameter $\lambda$ per entangling gate, pair visibility $\mu = 1 - \lambda$, and
+        symmetric readout error $\varepsilon$.
+        (a)~Critical two-qubit gate infidelity $r^\ast = 3\lambda^\ast/4$ as a function of $\varepsilon$ for
+        records without leakage ($f = 1$, solid) and with $f = 0.9$ (dashed). Each relaxed inequality (bound
+        $2 + 4\varepsilon$ for the two CHSH-type tests and $6 + 8\varepsilon$ for Genuine LF) is violated below
+        its curve. The star marks the effective noise level at
+        which the model reproduces the one-friend hardware result of Ref.~\cite{laux2026}.
+        (b)~Minimum coherence retention $f_{\mathrm{crit}}$ as a function of the gate infidelity for
+        $\varepsilon = 0$ (solid) and $\varepsilon = 1\%$ (dashed). Each inequality is violated above its curve.
+        The one-friend curves are exact, Eq.~\eqref{eq:sb_noisy_condition}; the two-friend curves come from
+        explicit two-qubit strategies and are sufficient conditions.%
+    }
+    \label{fig:noise_budget}
+\end{figure*}
+
+\subsection{Two friends}
+
+For the two-friend functionals we maximize numerically over two-qubit states and reversal observables, alternating between the optimal state and the optimal observable for each setting. Every value is that of an explicit strategy and hence a lower bound on the quantum maximum, so the tolerances below are sufficient conditions for a violation. Table~\ref{tab:noise_budget} and Fig.~\ref{fig:noise_budget} give the critical gate infidelity $r^\ast$ below which each relaxed inequality is violated.
+
+\begin{table*}[t]
+\caption{Critical two-qubit gate infidelity $r^\ast = 3\lambda^\ast/4$ (in percent) below which the relaxed inequalities (Eq.~\eqref{eq:relaxed_exact} with $\varepsilon_A = \varepsilon_B = \varepsilon$) are violated in the circuit model, for readout error $\varepsilon$ and coherence retention $f$. The one-friend columns follow from Eq.~\eqref{eq:sb_noisy_condition}; the two-friend columns are sufficient conditions from explicit strategies. A dash means no violation even with perfect gates.}
+\label{tab:noise_budget}
+\begin{ruledtabular}
+\begin{tabular}{ccccccc}
+ & \multicolumn{2}{c}{Semi-Brukner (1 friend)} & \multicolumn{2}{c}{Brukner (2 friends)} & \multicolumn{2}{c}{Genuine LF (2 friends)} \\
+$\varepsilon$ & $f = 1$ & $f = 0.9$ & $f = 1$ & $f = 0.9$ & $f = 1$ & $f = 0.9$ \\
+\colrule
+$0$     & $9.84$ & $8.66$ & $6.29$ & $4.71$ & $3.37$ & $1.72$ \\
+$0.5\%$ & $9.03$ & $7.82$ & $5.76$ & $4.14$ & $2.94$ & $1.26$ \\
+$1\%$   & $8.21$ & $6.97$ & $5.23$ & $3.58$ & $2.50$ & $0.80$ \\
+$2\%$   & $6.53$ & $5.24$ & $4.14$ & $2.43$ & $1.60$ & --- \\
+$3\%$   & $4.81$ & $3.45$ & $3.04$ & $1.27$ & $0.69$ & --- \\
+\end{tabular}
+\end{ruledtabular}
+\end{table*}
+
+Three features stand out. First, the ordering is the same everywhere: one-friend Semi-Brukner tolerates the most noise, two-friend Brukner comes next, and Genuine LF last. With perfect readout and no leakage the critical infidelities are $9.8\%$, $6.3\%$ and $3.4\%$, and one percent of readout error lowers them to $8.2\%$, $5.2\%$ and $2.5\%$. Second, the largest ideal violation does not make Genuine LF the easiest test. Its excess of $1.34$ over the bound, against $0.83$ for the CHSH-type functionals, is spread over eleven terms, and its relaxed bound loosens twice as fast. A shot-noise estimate of the number of shots needed for a violation by five standard deviations (summed over setting pairs, with the optimal allocation) points the same way: at $r = 0.3\%$ and $\varepsilon = 1\%$ it is about $5 \times 10^2$ for one-friend Semi-Brukner, $6 \times 10^2$ for Brukner, and $2 \times 10^3$ for Genuine LF. Third, leakage and gate noise compound. At $\varepsilon = 1\%$ a record with $f = 0.9$ lowers the Genuine LF tolerance from $2.5\%$ to $0.8\%$, and at $\varepsilon = 2\%$ no gate quality suffices. Readout error alone closes the Genuine LF window at $\varepsilon \approx 3.7\%$ for $f = 1$, against $5.6\%$ for the two CHSH-type tests.
+
+\subsection{Calibration against a published run}
+
+Laux and Cavalcanti~\cite{laux2026} report, for their ``Reflex'' agent on the processor \texttt{ibm\_marrakesh}, a one-friend value equivalent to $S_{\mathrm{SB}} = 2.465 \pm 0.009$, together with a discrepancy $\varepsilon = 0.0175 \pm 0.0021$ estimated from separate preparations of the memory qubit. Taking that $\varepsilon$ as the assignment error of every readout and $f = 1$, Eq.~\eqref{eq:sb_noisy} reproduces the value at $\lambda_{\mathrm{eff}} = 0.026$, that is $r_{\mathrm{eff}} = 2.0\%$ ($1.6\%$--$2.3\%$ over the quoted uncertainties). This is an equivalent noise level in our three-gate model, not a gate error of the device: it absorbs idling, crosstalk, and the additional operations of the agent's circuit. At that level the model places the two-friend Brukner test $0.30$ above its relaxed bound ($0.28$--$0.32$), a violation by five standard deviations in roughly $3 \times 10^3$ shots. The Genuine LF test lands at its threshold: $0.05$ below the relaxed bound, with a range from $0.11$ below to $0.01$ above over the quoted uncertainties. It requires $r_{\mathrm{eff}} < 1.8\%$ at the same readout error, or $\varepsilon < 1.6\%$ at the same gate noise. On this reading a two-friend Brukner test is within reach of hardware that has already run the one-friend test, while an inequality that is a facet of $\mathcal{P}_{\mathrm{LF}}$ but not of the Bell polytope is marginal at the same noise level: the model cannot say on which side it falls, and a moderate reduction of either error would decide it. Read through Corollary~\ref{cor:privacy}, the reported value also bounds the probability with which any system outside the laboratory could have predicted the agent's record, at $0.85 + \varepsilon \approx 0.86$.
+
+\subsection{Limits of the model}
+
+The model contains depolarizing gate noise, dephasing of the record, and symmetric readout error, all of which act as visibilities. Energy relaxation is non-unital: it biases the record toward one outcome and adds offsets to the marginals that Eq.~\eqref{eq:visibilities} does not capture, beyond its contribution to $\varepsilon$. Coherent gate errors and crosstalk are likewise absent. Friends made of several qubits change both the number of entangling gates and the way leakage acts on the record~\cite{zeng2024}. The two-friend quantum values are lower bounds from explicit two-qubit strategies, whereas the relaxed bounds they are compared with are exact. The simulation in \texttt{lf\_noise\_budget.py} can be extended in each of these directions, and the script also evaluates a single set of device parameters.
