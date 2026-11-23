@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use or extend this verification suite, please cite it using the metadata below."
-title: "Covariant Record Horizons and the Abandonment of Absolute Events: Verification Suite"
+title: 'Verification Suite for "Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets"'
 type: software
 authors:
   - family-names: "Baker"
@@ -11,7 +11,7 @@ license: MIT
 abstract: >-
   Companion Python numerical optimization suite (lf_leak_tests.py) and Lean 4
   machine-checked formal proofs (LFPolytope.lean, LFQuantumBounds.lean) for
-  "Covariant Record Horizons and the Abandonment of Absolute Events".
+  "Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets".
 keywords:
   - quantum foundations
   - Wigner's friend

@@ -1,4 +1,4 @@
-# Covariant Record Horizons and the Abandonment of Absolute Events
+# Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24435914.svg)](https://doi.org/10.5281/zenodo.24435914)
 [![arXiv](https://img.shields.io/badge/arXiv-TODO.XXXXX%20%5Bquant--ph%5D-b31b1b.svg)](https://arxiv.org/abs/TODO.XXXXX)
@@ -8,7 +8,8 @@
 
 Companion numerical simulation and formal machine-checked verification repository for the manuscript:
 
-> **Covariant Record Horizons and the Abandonment of Absolute Events**  
+> **Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets**  
+> *(Versions up to v1.0.3 were titled "Covariant Record Horizons and the Abandonment of Absolute Events"; the DOI is unchanged.)*  
 > **Author:** Kevin J. Baker ([ORCID: 0009-0002-4464-6391](https://orcid.org/0009-0002-4464-6391))  
 > **Preprint:** [doi:10.5281/zenodo.24435914](https://doi.org/10.5281/zenodo.24435914) · `arXiv:TODO.XXXXX [quant-ph]` *(link active upon public timestamp)*
 
@@ -215,7 +216,7 @@ If you use or fork this verification suite in your research, please cite:
 
 ```bibtex
 @misc{baker2026covariant,
-  title     = {Covariant Record Horizons and the Abandonment of Absolute Events},
+  title     = {Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets},
   author    = {Baker, Kevin J.},
   year      = {2026},
   publisher = {Zenodo},

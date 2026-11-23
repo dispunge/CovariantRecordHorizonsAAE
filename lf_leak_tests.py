@@ -3,7 +3,8 @@
 lf_leak_tests.py
 ================
 Numerical verification suite for:
-"Covariant Record Horizons and the Abandonment of Absolute Events"
+"Record Leakage in Local Friendliness Tests: Randomness Trade-off,
+Two-Friend Bounds, and Noise Budgets"
 
 Verifies:
 1. Polytope bounds and affine facet ranks (in R^15) for one representative of
