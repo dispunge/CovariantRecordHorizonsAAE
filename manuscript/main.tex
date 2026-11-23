@@ -15,22 +15,23 @@
 \usepackage{orcidlink}
 
 \hypersetup{
-  pdftitle={Covariant Record Horizons and the Abandonment of Absolute Events},
+  pdftitle={Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets},
   pdfauthor={Kevin J. Baker},
   pdfsubject={Quantum Foundations; Relativistic Quantum Information},
-  pdfkeywords={quantum foundations, Wigner's friend, Local Friendliness, algebraic quantum field theory, Lean 4}
+  pdfkeywords={quantum foundations, Wigner's friend, Local Friendliness, device-independent randomness, noise budget, Lean 4}
 }
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 
 \begin{document}
 
-\title{Covariant Record Horizons and the Abandonment of Absolute Events}
+\title{Record Leakage in Local Friendliness Tests: Randomness Trade-off, Two-Friend Bounds, and Noise Budgets}
 
 \author{Kevin J. Baker\,\orcidlink{0009-0002-4464-6391}}
 \affiliation{Independent Researcher}
@@ -40,7 +41,7 @@
 \date{\today}
 
 \begin{abstract}
-Extended Wigner's friend scenarios (EWFS) and Local Friendliness (LF) no-go theorems establish that universal unitary quantum dynamics, Local Agency, and the \emph{Absoluteness of Observed Events} (AOE) cannot jointly hold across arbitrary physical scales. Standard formulations of these theorems, however, leave two operational problems unresolved: first, specifying a Lorentz-covariant criterion for when an empirical proposition acquires a definite truth value relative to a localized observer without invoking foliation-dependent state reduction; and second, quantifying how partial environmental record leakage degrades violations across both Bell-type and genuine multi-friend facets of the Local Friendliness polytope. Here we formulate the \emph{Causal Actuality Hypothesis} (CAH), indexing three-valued truth valuations $v_O(P, \tau) \in \{T, F, U\}$ along an observer worldline $x_O(\tau)$ to the local record subalgebra $\mathcal{R}_O(\tau) \subset \mathfrak{A}(J^-(x_O(\tau)))$ inside the observer's causal past light cone, and verify an explicit algebraic gluing condition upon causal horizon intersection. Modeling imperfect laboratory isolation through environmental branch coherence retention $f = |\langle e_+ | e_- \rangle| \in [0, 1]$ and record leakage $\ell = \sqrt{1 - f^2} \in [0, 1]$, we prove via a dimension-independent noncommutative Sum-of-Squares identity in unital $C^*$-algebras that the one-friend Semi-Brukner functional satisfies $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$. Extending the analysis across the five canonical $(3,3,2,2)$ inequality categories tested by Bong \emph{et al.}, we demonstrate a sharp asymptotic separation in the high-leakage regime ($f \to 0, \ell \to 1$): one-friend excess violations decay quadratically as $\Delta S \simeq f^2$, whereas scenarios in which both laboratories leak undergo quartic suppression $\Delta S = \mathcal{O}(f^4)$. For two-qubit systems the CHSH-type functionals obey the product bound $S \le 2\sqrt{1 + f_A^2 f_B^2}$, and both the two-friend Brukner and Bong \emph{et al.}'s genuine LF facets obey the analytical lower bound $\Delta S \ge f^4/(1+f^2)$ (asymptotically exact as $f \to 0$). Finally, we ground the fundamental ceiling on reversible unitary control in soft-graviton and soft-photon decoherence across Killing and cosmological de Sitter horizons following Danielson, Satishchandran, and Wald, closing the flat-spacetime adiabatic reversal loophole in principle while motivating multi-qubit processors as minimalist causal-horizon test beds.
+Local Friendliness (LF) no-go theorems show that quantum predictions for extended Wigner's friend scenarios are incompatible with Local Agency combined with the \emph{Absoluteness of Observed Events}. A test requires a superobserver to reverse the friend's measurement, and any record that leaks into modes outside the superobserver's control degrades the violation. We quantify this for pure-dephasing leakage with branch coherence retention $f$ and leakage $\ell = \sqrt{1 - f^2}$. For one leaky laboratory the optimum of the Semi-Brukner functional is $2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$; we give a Sum-of-Squares certificate valid in any unital $C^*$-algebra and identify the bound with the trade-off between CHSH violation and an eavesdropper's guessing probability from device-independent randomness certification, so that an LF violation certifies the privacy of the friend's record. For two leaky laboratories and two-qubit systems, CHSH-type functionals obey $S \le 2\sqrt{1 + f_A^2 f_B^2}$, and the Brukner and genuine LF facets of the $(3,3,2,2)$ polytope retain an excess of at least $f^4/(1+f^2)$: violations decay quadratically in $f$ with one leaky laboratory and quartically with two. The quartic law holds in every dimension for the Brukner functional but fails for the others when a friend's measurement is coarse-grained. For circuit implementations, a noise budget combining leakage with gate and readout errors predicts, at the effective noise of a recent one-friend hardware run, a violation of the two-friend Brukner inequality and places the genuine LF facet at its threshold. Polytope facet ranks and the noncommutative Sum-of-Squares bounds are machine-checked in Lean~4. We frame the results by distinguishing the laboratory horizon, set by leakage, from the causal horizon in a covariant, record-relative assignment of truth values.
 \end{abstract}
 
 \maketitle
@@ -48,7 +49,8 @@ Extended Wigner's friend scenarios (EWFS) and Local Friendliness (LF) no-go theo
 \input{sections/01_introduction}
 \input{sections/02_horizons}
 \input{sections/03_polytope_bounds}
-\input{sections/04_dsw_ceilings}
+\input{sections/04_noise_budgets}
+\input{sections/05_dsw_ceilings}
 
 \bibliography{bibliography/references}
 

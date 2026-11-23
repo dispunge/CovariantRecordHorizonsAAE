@@ -1,10 +1,12 @@
 PYTHON := $(shell if [ -x ../.venv/bin/python ]; then echo ../.venv/bin/python; else echo python3; fi)
 SCRIPT := ../lf_leak_tests.py
+NOISE_SCRIPT := ../lf_noise_budget.py
 MAIN := main.tex
 BASE := $(basename $(MAIN))
 OUTPUT := $(BASE).pdf
-FIGURES := figures/lf_leakage_bounds.pdf figures/lf_leakage_bounds.png
+FIGURES := figures/lf_leakage_bounds.pdf figures/lf_leakage_bounds.png figures/lf_noise_budget.pdf figures/lf_noise_budget.png
 JSON := data/lf_verification_results.json
+NOISE_JSON := data/lf_noise_budget.json
 LATEXMK := latexmk
 PDFLATEX := pdflatex
 BIBTEX := bibtex
@@ -27,6 +29,10 @@ figures:
 	cp ../lf_leakage_bounds.pdf figures/lf_leakage_bounds.pdf
 	cp ../lf_leakage_bounds.png figures/lf_leakage_bounds.png
 	cp ../lf_verification_results.json $(JSON)
+	cd .. && $(subst ../,,$(PYTHON)) $(subst ../,,$(NOISE_SCRIPT)) --plot --save-json lf_noise_budget.json
+	cp ../lf_noise_budget.pdf figures/lf_noise_budget.pdf
+	cp ../lf_noise_budget.png figures/lf_noise_budget.png
+	cp ../lf_noise_budget.json $(NOISE_JSON)
 
 clean-aux:
 	rm -f $(BASE).aux $(BASE).bbl $(BASE).bcf $(BASE).blg $(BASE).fdb_latexmk $(BASE).fls $(BASE).log $(BASE).out $(BASE)Notes.bib $(BASE).run.xml $(BASE).synctex.gz $(BASE).toc
@@ -88,7 +94,7 @@ rebuild: clean figures build
 
 clean: clean-aux
 	$(LATEXMK) -C $(MAIN) 2>/dev/null || true
-	rm -f $(OUTPUT) $(FIGURES) $(JSON)
+	rm -f $(OUTPUT) $(FIGURES) $(JSON) $(NOISE_JSON)
 	rm -f *.aux *.bbl *.bcf *.blg *.fdb_latexmk *.fls *.log *.out *Notes.bib *.run.xml *.synctex.gz *.toc
 	rm -rf build/
 

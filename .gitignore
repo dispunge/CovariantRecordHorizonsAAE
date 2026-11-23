@@ -48,6 +48,9 @@ coverage.xml
 lf_verification_results.json
 lf_leakage_bounds.pdf
 lf_leakage_bounds.png
+lf_noise_budget.json
+lf_noise_budget.pdf
+lf_noise_budget.png
 
 # Lean/Lake build artifacts
 lake-packages/
