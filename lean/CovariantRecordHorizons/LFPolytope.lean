@@ -127,3 +127,30 @@ theorem genuineLF_is_strict_LF_facet :
     (lhvVertices.filter (fun p => genuineLF p == 6)).length = 14 ∧
     tightHomRank lhvVertices genuineLF 6 = 12 ∧
     tightHomRank lfVertices genuineLF 6 = 15 := by decide
+
+/-! ### Remaining ranks of Table I
+
+`genuineLF_is_strict_LF_facet` covers the Genuine LF row. The theorems below cover
+the other rows: every functional has homogeneous rank 15 on its tight LHV vertices
+(a Bell facet), and Semi-Brukner, Brukner and I3322-LF also on their tight LF
+vertices (an LF facet). Bell non-LF has no LF rank, since its bound 2 is exceeded
+on the LF polytope (`bellNonLF_separates_LHV_and_LF`).
+
+The tight sets here are larger than for Genuine LF (up to 40 vertices), so each
+rank is its own theorem and `decide +kernel` hands the evaluation directly to the
+kernel instead of running it in the elaborator first. Unlike `native_decide`, this
+adds no axioms. -/
+
+theorem semiBrukner_lhv_rank : tightHomRank lhvVertices semiBrukner 2 = 15 := by decide +kernel
+
+theorem semiBrukner_lf_rank : tightHomRank lfVertices semiBrukner 2 = 15 := by decide +kernel
+
+theorem brukner_lhv_rank : tightHomRank lhvVertices brukner 2 = 15 := by decide +kernel
+
+theorem brukner_lf_rank : tightHomRank lfVertices brukner 2 = 15 := by decide +kernel
+
+theorem bellNonLF_lhv_rank : tightHomRank lhvVertices bellNonLF 2 = 15 := by decide +kernel
+
+theorem i3322LF_lhv_rank : tightHomRank lhvVertices i3322LF 4 = 15 := by decide +kernel
+
+theorem i3322LF_lf_rank : tightHomRank lfVertices i3322LF 4 = 15 := by decide +kernel

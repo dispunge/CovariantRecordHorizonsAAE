@@ -15,7 +15,7 @@ In any realistic physical implementation, Charlie's measurement interaction $U_A
     f_A \equiv |\langle e_+ | e_- \rangle| \in [0, 1], \qquad \ell_A \equiv \sqrt{1 - f_A^2} \in [0, 1].
     \label{eq:polarity_convention}
 \end{equation}
-Notice the physical endpoints of Eq.~\eqref{eq:polarity_convention}: perfect isolation corresponds to $\ell_A = 0$ ($f_A = 1$, fully reversible friend record), whereas complete environmental orthogonalization corresponds to $\ell_A = 1$ ($f_A = 0$, irreversible classical leakage into $E_A$ outside Alice's record-reversal control). Symmetric bilateral setups satisfy $f_A = f_B = f$ and $\ell_A = \ell_B = \ell$.
+Notice the physical endpoints of Eq.~\eqref{eq:polarity_convention}: perfect isolation corresponds to $\ell_A = 0$ ($f_A = 1$, fully reversible friend record), whereas complete environmental orthogonalization corresponds to $\ell_A = 1$ ($f_A = 0$, irreversible classical leakage into $E_A$ outside Alice's record-reversal control). Symmetric bilateral setups satisfy $f_A = f_B = f$ and $\ell_A = \ell_B = \ell$. In interferometric language, $\ell_A$ and $f_A$ are the which-way distinguishability and the fringe visibility of $E_A$ regarded as a which-way marker, and Eq.~\eqref{eq:polarity_convention} is the pure-marker case of the duality relation $\ell_A^2 + f_A^2 \le 1$~\cite{englert1996}.
 
 \subsection{Exact Facet Classification of the $(3,3,2,2)$ LF Polytope}
 
@@ -29,7 +29,7 @@ A $(3,3,2,2)$ behavior is specified by the 15-dimensional expectation vector
 Under Local Hidden Variables (LHV), the Bell polytope $\mathcal{P}_{\mathrm{LHV}} \subset \mathbb{R}^{15}$ is the convex hull of $2^6 = 64$ deterministic extreme points $a_x, b_y \in \{-1, +1\}$ with $\langle A_x B_y \rangle = a_x b_y$. Under Two-Friend Local Friendliness (AOE applied to $c, d, A_x, B_y$ combined with Local Agency), there exists a joint distribution $P(a_x, b_y, c, d | x, y)$ satisfying no-signaling and $A_1 = c$ when $x = 1$, $B_1 = d$ when $y = 1$. Conditioning on deterministic friend outcomes $(c, d) \in \{-1, +1\}^2$ leaves an arbitrary non-signaling $(2,2,2,2)$ box on settings $\{2, 3\} \times \{2, 3\}$, whose non-local extreme points are the 8 Popescu--Rohrlich (PR) boxes ($\langle A_x \rangle = \langle B_y \rangle = 0$ for $x, y \in \{2, 3\}$ and $E_{22} E_{23} E_{32} E_{33} = -1$ with $E_{xy} \in \{-1, +1\}$). Consequently, $\mathcal{P}_{\mathrm{LF}}$ is spanned by $64 + 4 \times 8 = 96$ vertices in $\mathbb{R}^{15}$~\cite{bong2020}.
 
 \begin{table*}[t]
-\caption{Exact polytope maxima and tight homogeneous matrix ranks (in $\mathbb{R}^{16}$ over $\mathbb{R}^{15}$, where a full 14-dimensional facet requires homogeneous rank $15$) for the five canonical $(3,3,2,2)$ EWFS inequality classes of Bong \emph{et al.}~\cite{bong2020}, machine-verified in Lean~4 (\texttt{LFPolytope.lean}) via exact fraction-free integer Gaussian elimination.}
+\caption{Exact polytope maxima and tight homogeneous matrix ranks (in $\mathbb{R}^{16}$ over $\mathbb{R}^{15}$, where a full 14-dimensional facet requires homogeneous rank $15$) for one representative of each of the five $(3,3,2,2)$ inequality categories tested by Bong \emph{et al.}~\cite{bong2020}, computed by exact rational Gaussian elimination (\texttt{lf\_leak\_tests.py}). The vertex enumeration, the validity of the four LF bounds on all 96 vertices, the Bell non-LF separation, and every rank in the table are additionally machine-checked in Lean~4 (\texttt{LFPolytope.lean}).}
 \label{tab:polytope_ranks}
 \begin{ruledtabular}
 \begin{tabular}{lccccccc}
@@ -44,7 +44,7 @@ Genuine LF              & $6$ & $6$ & $6$ & $12$ & $15$ & No  & Yes \\
 \end{ruledtabular}
 \end{table*}
 
-Table~\ref{tab:polytope_ranks} summarizes the exact vertex maxima and tight homogeneous ranks of the five canonical linear functionals studied in Ref.~\cite{bong2020}:
+Table~\ref{tab:polytope_ranks} summarizes the exact vertex maxima and tight homogeneous ranks of five linear functionals, one representative (up to relabeling of settings and outcomes) of each inequality category tested in Ref.~\cite{bong2020}:
 \begin{align}
     S_{\mathrm{SB}} &= -\langle A_1 B_2 \rangle + \langle A_1 B_3 \rangle - \langle A_3 B_2 \rangle - \langle A_3 B_3 \rangle \le 2, \label{eq:ineq_sb} \\
     S_{\mathrm{Bruk}} &= -\langle A_1 B_1 \rangle + \langle A_1 B_2 \rangle - \langle A_2 B_1 \rangle - \langle A_2 B_2 \rangle \le 2, \label{eq:ineq_bruk} \\
@@ -58,9 +58,11 @@ Table~\ref{tab:polytope_ranks} summarizes the exact vertex maxima and tight homo
 \end{align}
 Crucially, while $S_{\mathrm{GLF}} \le 6$ holds on all 64 LHV vertices, equality $S_{\mathrm{GLF}} = 6$ is attained on only 14 LHV vertices whose homogeneous span has rank $12 < 15$ (since every tight LHV vertex simultaneously satisfies $1 + a_2 + b_1 + a_2 b_1 = 0$, $1 + a_1 + b_2 + a_1 b_2 = 0$, and $a_2 b_2 - a_2 b_3 - a_3 b_2 - a_3 b_3 = 2$). Including the PR-box LF vertices raises the tight homogeneous rank to $15$, confirming from first principles that $S_{\mathrm{GLF}} \le 6$ is a genuine facet of $\mathcal{P}_{\mathrm{LF}}$ and \emph{not} a facet of $\mathcal{P}_{\mathrm{LHV}}$.
 
+These five functionals do not exhaust the facets of $\mathcal{P}_{\mathrm{LF}}$. The complete enumeration of Ref.~\cite{bong2020} yields 932 facets in nine inequivalent classes: two genuine LF classes, two $I_{3322}$ classes, the Brukner and Semi-Brukner classes, and three positivity classes. Equations~\eqref{eq:ineq_glf} and~\eqref{eq:ineq_i3322} represent the first genuine LF class and the $I_{3322}$ class with marginals on inputs 1 and 2; the second genuine LF class and the $I_{3322}$ class with marginals on inputs 2 and 3 are not analyzed below.
+
 \subsection{Dimension-Independent $C^*$-Algebra Bound for One-Friend Leakage}
 
-To avoid restricting Sec.~\ref{sec:horizons}'s algebraic framework to two-qubit spaces, we first establish the exact Semi-Brukner bound in arbitrary unital $C^*$-algebras. Suppose $\mathfrak{A}$ is any unital $C^*$-algebra containing commuting Alice and Bob subalgebras ($[\mathfrak{A}_A, \mathfrak{A}_B] = \{0\}$). Let Charlie's binary observable be $A_1 = P_+ - P_- \in \mathfrak{A}_A$ ($A_1^* = A_1$, $A_1^2 = \mathbf{1}$). When Charlie's registration leaks environmental states with $\langle e_+ | e_- \rangle = f e^{i\alpha}$ ($f \in [0, 1]$), tracing over $E_A$ after Alice's reversal $U_A^\dagger$ maps any target involution $N_0 \in \mathfrak{A}_A$ ($N_0^* = N_0, N_0^2 = \mathbf{1}$) to $\Phi_f(N_0) = P_+ N_0 P_+ + P_- N_0 P_- + f(e^{i\alpha} P_+ N_0 P_- + e^{-i\alpha} P_- N_0 P_+)$. Absorbing the phase unitary $W_\alpha = P_+ + e^{i\alpha} P_-$ into $N \equiv W_\alpha N_0 W_\alpha^*$ ($N^* = N, N^2 = \mathbf{1}$) decomposes $N = N_+ + N_-$ into $A_1$-even and $A_1$-odd components
+To avoid restricting Sec.~\ref{sec:horizons}'s algebraic framework to two-qubit spaces, we first establish the exact Semi-Brukner bound in arbitrary unital $C^*$-algebras. Suppose $\mathfrak{A}$ is any unital $C^*$-algebra containing commuting Alice and Bob subalgebras ($[\mathfrak{A}_A, \mathfrak{A}_B] = \{0\}$). Let Charlie's binary observable be $A_1 = P_+ - P_- \in \mathfrak{A}_A$ ($A_1^* = A_1$, $A_1^2 = \mathbf{1}$). When Charlie's registration leaks environmental states with $\langle e_+ | e_- \rangle = f e^{i\alpha}$ ($f \in [0, 1]$), tracing over $E_A$ after Alice's reversal $U_A^\dagger$ maps any target involution $N_0 \in \mathfrak{A}_A$ ($N_0^* = N_0, N_0^2 = \mathbf{1}$) to $\Phi_f(N_0) = P_+ N_0 P_+ + P_- N_0 P_- + f(e^{i\alpha} P_+ N_0 P_- + e^{-i\alpha} P_- N_0 P_+)$. Absorbing the phase unitary $W_\alpha = P_+ + e^{i\alpha} P_-$ into $N \equiv W_\alpha^* N_0 W_\alpha$ ($N^* = N, N^2 = \mathbf{1}$) decomposes $N = N_+ + N_-$ into $A_1$-even and $A_1$-odd components
 \begin{equation}
     N_+ = \frac{1}{2}(N + A_1 N A_1), \qquad N_- = \frac{1}{2}(N - A_1 N A_1),
     \label{eq:even_odd_decomp}
@@ -122,10 +124,14 @@ A qualitatively harsher scaling emerges in genuine two-friend scenarios where \e
         \vspace{1.1cm}}}%
     }
     \caption{%
-        Quantum violation excess $\Delta S(f) = S_{\max}(f) - B_{\mathrm{LF}}$ as a function of
-        branch coherence retention $f = |\langle e_+ | e_- \rangle| = \sqrt{1 - \ell^2}$ at ideal
-        visibility ($\mu = 1$).
-        (a)~Comparison across all five canonical $(3,3,2,2)$ inequalities of Bong \emph{et al.}~\cite{bong2020}.
+        Quantum excess $\Delta S(f) = S_{\max}(f) - B$ over the bound $B$ of
+        Table~\ref{tab:polytope_ranks} as a function of branch coherence retention
+        $f = |\langle e_+ | e_- \rangle| = \sqrt{1 - \ell^2}$ at ideal visibility ($\mu = 1$).
+        (a)~Comparison across the five functionals of
+        Eqs.~\eqref{eq:ineq_sb}--\eqref{eq:ineq_glf}. For Bell non-LF, $B = 2$ is the Bell bound;
+        its LF bound is $4$, so this curve signals Bell nonlocality but no LF violation.
+        The kink in the Genuine LF curve near $f \approx 0.85$ is a switch between two
+        branches of optimal strategies, resolved by the $0.02$ sampling in $f$.
         (b)~Log-log scaling in the high-leakage regime ($f \to 0$, $\ell \to 1$), illustrating the
         transition from quadratic One-Friend excess $\Delta S \simeq f^2$ (Semi-Brukner) to quartic
         Two-Friend suppression $\Delta S = \mathcal{O}(f^4)$, closely tracking the collinear lower
@@ -160,6 +166,8 @@ At unit visibility ($\mu = 1$), the maximum quantum value $S_{\max}^{\mathrm{GLF
 Prepare $|\Phi^+\rangle$ (so all single-party marginals vanish) and choose X--Z plane Bloch vectors $\hat{u}_C = \hat{u}_D = +\hat{z}$ ($A_1 = B_1 = \sigma_z$), $\hat{n}_2 = \hat{m}_2 = -\hat{z}$, and $\hat{n}_3 = (\sin\theta, 0, \cos\theta)$, $\hat{m}_3 = (-\sin\theta, 0, \cos\theta)$. Under Eq.~\eqref{eq:bloch_dephase}, $\vec{a}_2^{\mathrm{eff}} = \vec{b}_2^{\mathrm{eff}} = -\hat{z}$, $\vec{a}_3^{\mathrm{eff}} = (f\sin\theta, 0, \cos\theta)$, and $\vec{b}_3^{\mathrm{eff}} = (-f\sin\theta, 0, \cos\theta)$. Substituting the resulting correlators $E_{11} = E_{22} = +1$, $E_{12} = E_{21} = -1$, $E_{23} = E_{32} = -\cos\theta$, and $E_{33} = -f^2\sin^2\theta + \cos^2\theta$ into Eq.~\eqref{eq:ineq_glf} yields $S_{\mathrm{GLF}}(\theta; f) = 5 + 2\cos\theta + f^2\sin^2\theta - \cos^2\theta$. Setting $\cos\theta = 1/(1 + f^2)$ and $\sin\theta = f\sqrt{2 + f^2}/(1 + f^2)$ (which satisfies $\cos^2\theta + \sin^2\theta = 1$, formally verified in \texttt{LFQuantumBounds.lean}) evaluates algebraically to $6 + f^4/(1 + f^2) > 6$ for every $f > 0$.
 \end{proof}
 
+The agreement between Eq.~\eqref{eq:glf_quartic} and the collinear Brukner bound is structural rather than a second independent result: on the strategy above $A_2 = -A_1$, $B_2 = -B_1$, and $E_{11} = 1$, so that $S_{\mathrm{GLF}} = 4 + (E_{11} + E_{13} + E_{31} - E_{33})$, a Brukner-class CHSH expression shifted by a constant. The globally optimized values do differ beyond leading order: numerically $\Delta S_{\mathrm{GLF}}(f) \approx f^4 - 0.6 f^6$, against $\Delta S_{\mathrm{Bruk}}(f) = f^4 - f^6 + \mathcal{O}(f^8)$.
+
 \begin{table*}[t]
 \caption{Comparison between the exact One-Friend Semi-Brukner excess $\Delta S_{\mathrm{SB}}(f) = 2\sqrt{1+f^2}-2$, the analytical collinear Two-Friend lower bound $\Delta S_{2\mathrm{F}}^{\mathrm{col}}(f) = f^4/(1+f^2)$, and the globally optimized Two-Friend Brukner ($\Delta S_{\mathrm{Bruk}}$) and Genuine LF ($\Delta S_{\mathrm{GLF}}$) excesses at unit visibility ($\mu = 1$).}
 \label{tab:scaling_comparison}
@@ -177,4 +185,4 @@ $1.00$ & $0.000$ & $+0.828427$ & $+0.500000$ & $+0.828427$ & $+1.344912$ & Unita
 \end{ruledtabular}
 \end{table*}
 
-Figure~\ref{fig:lf_leakage_bounds} and Table~\ref{tab:scaling_comparison} display the global numerical optimization across all five Bong \emph{et al.} inequalities alongside these analytical benchmarks. As seen in Fig.~\ref{fig:lf_leakage_bounds}(a) and~(b), when $98\%$ of record distinguishability leaks into unreversed modes ($\ell \approx 0.980, f = 0.20$), One-Friend Semi-Brukner retains a nearly $0.04$ violation excess, whereas Two-Friend Brukner and Genuine LF drop by a factor of $25$ to $+0.00154$--$0.00156$. Under realistic quantum-processor visibility $\mu < 1$, Semi-Brukner remains violable whenever $\mu > 1/\sqrt{2} \approx 0.7071$ above critical coherence $f_{\mathrm{crit}}^{\mathrm{SB}}(\mu) = \sqrt{\mu^{-2} - 1}$ (tolerating leakage up to $\ell_{\max}^{\mathrm{SB}}(\mu) = \sqrt{2 - \mu^{-2}}$), whereas Genuine LF requires substantially higher baseline fidelity and near-unit branch coherence ($f_{\mathrm{crit}}^{\mathrm{GLF}} \approx 0.892$, $\ell_{\max}^{\mathrm{GLF}} \approx 0.453$ versus $f_{\mathrm{crit}}^{\mathrm{SB}} \approx 0.426$, $\ell_{\max}^{\mathrm{SB}} \approx 0.905$ at $\mu = 0.92$, rising to $f_{\mathrm{crit}}^{\mathrm{GLF}} \approx 0.937$ at $\mu = 0.88$ under isotropic depolarizing noise), opening a broad experimental window in which one-friend and Bell inequalities are violated while genuine two-friend LF facets remain strictly satisfied.
+Figure~\ref{fig:lf_leakage_bounds} and Table~\ref{tab:scaling_comparison} display the global numerical optimization across the five functionals alongside these analytical benchmarks. As seen in Fig.~\ref{fig:lf_leakage_bounds}(a) and~(b), when $98\%$ of record distinguishability leaks into unreversed modes ($\ell \approx 0.980, f = 0.20$), One-Friend Semi-Brukner retains a nearly $0.04$ violation excess, whereas Two-Friend Brukner and Genuine LF drop by a factor of $25$ to $+0.00154$--$0.00156$. Under realistic quantum-processor visibility $\mu < 1$, Semi-Brukner remains violable whenever $\mu > 1/\sqrt{2} \approx 0.7071$ above critical coherence $f_{\mathrm{crit}}^{\mathrm{SB}}(\mu) = \sqrt{\mu^{-2} - 1}$ (tolerating leakage up to $\ell_{\max}^{\mathrm{SB}}(\mu) = \sqrt{2 - \mu^{-2}}$), whereas Genuine LF requires substantially higher baseline fidelity and near-unit branch coherence ($f_{\mathrm{crit}}^{\mathrm{GLF}} \approx 0.892$, $\ell_{\max}^{\mathrm{GLF}} \approx 0.453$ versus $f_{\mathrm{crit}}^{\mathrm{SB}} \approx 0.426$, $\ell_{\max}^{\mathrm{SB}} \approx 0.905$ at $\mu = 0.92$, rising to $f_{\mathrm{crit}}^{\mathrm{GLF}} \approx 0.937$ at $\mu = 0.88$, all for the Werner state $\rho_\mu$), opening a broad experimental window in which one-friend and Bell inequalities are violated while genuine two-friend LF facets remain strictly satisfied.

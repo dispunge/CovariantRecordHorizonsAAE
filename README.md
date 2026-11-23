@@ -93,13 +93,14 @@ python -m pip install -r requirements.txt
 ```bash
 python3 lf_leak_tests.py
 ```
+The default sweep samples $f$ at 51 points, which resolves the `Genuine LF` branch switch near $f \approx 0.85$; the whole run takes on the order of five minutes on a single core. `--grid-points 11` restores the coarse 0.1-spaced sweep (about a quarter less time), and `--grid-points 101` gives a smoother figure. The tabulated 0.1-spaced rows are the same in every case.
 
 **Generate publication PDF/PNG figures and export JSON data:**
 ```bash
 python3 lf_leak_tests.py --plot --save-json lf_verification_results.json
 ```
 This produces `lf_leakage_bounds.pdf` and `lf_leakage_bounds.png`, illustrating:
-* **Panel (a):** Quantum violation excess $\Delta S(f) = S_{\max}(f) - B_{\mathrm{LF}}$ across coherence retention $f \in [0, 1]$ for all five canonical EWFS inequalities (`Semi-Brukner`, `Brukner`, `Bell non-LF`, `I3322-LF`, and `Genuine LF`).
+* **Panel (a):** Quantum excess $\Delta S(f) = S_{\max}(f) - B$ over the tabulated bound $B$ across coherence retention $f \in [0, 1]$ for the five functionals `Semi-Brukner`, `Brukner`, `Bell non-LF`, `I3322-LF`, and `Genuine LF`. For `Bell non-LF`, $B = 2$ is the Bell bound; its LF bound is 4, so that curve shows Bell nonlocality, not an LF violation.
 * **Panel (b):** Log-log asymptotic scaling in the high-leakage limit ($f \to 0, \ell \to 1$), demonstrating the sharp split between **quadratic** One-Friend excess $\Delta S \simeq f^2$ and **quartic** Two-Friend suppression $\Delta S = \mathcal{O}(f^4)$ (closely tracking the collinear lower bound $\Delta S_{2\mathrm{F}}^{\mathrm{col}} = f^4 / (1 + f^2)$ as $f \to 0$).
 
 **Restrict state optimization to maximally entangled Bell states ($|\Phi^+\rangle$):**
@@ -114,7 +115,7 @@ python3 lf_leak_tests.py --maximally-entangled-only
 Install Lean 4 via [`elan`](https://github.com/leanprover/elan) (or open the folder in VS Code with the official `lean4` extension).
 
 #### A. Instant Zero-Dependency Polytope Verification (`LFPolytope.lean`)
-Because `LFPolytope.lean` uses only the core Lean 4 standard library, the kernel can verify it directly in under one second without downloading `Mathlib`:
+Because `LFPolytope.lean` uses only the core Lean 4 standard library, the kernel can verify it directly without downloading `Mathlib`:
 ```bash
 lean lean/CovariantRecordHorizons/LFPolytope.lean
 ```
@@ -123,6 +124,7 @@ A silent exit (code `0`) confirms that the Lean 4 kernel independently verifies 
 - `valid_lf_inequalities`: Exhaustively verifies `Semi-Brukner <= 2`, `Brukner <= 2`, `I3322-LF <= 4`, and `Genuine LF <= 6` across every LF extreme point.
 - `bellNonLF_separates_LHV_and_LF`: Proves `Bell non-LF <= 2` on LHV vertices while reaching `4` on the LF polytope.
 - `genuineLF_is_strict_LF_facet`: Proves `Genuine LF == 6` holds on 14 LHV vertices (homogeneous rank `12 < 15`, ruling it out as a Bell facet) while achieving full facet rank `15` across the 96-vertex LF polytope.
+- `semiBrukner_lhv_rank`, `semiBrukner_lf_rank`, `brukner_lhv_rank`, `brukner_lf_rank`, `i3322LF_lhv_rank`, `i3322LF_lf_rank`, `bellNonLF_lhv_rank`: Prove the remaining ranks of the manuscript's Table I (all `15`), so that every rank in that table is kernel-checked.
 
 #### B. Full Lake Build & Continuous Quantum Bounds (`LFQuantumBounds.lean`)
 Fetch precompiled `Mathlib` binaries first (avoids compiling `Mathlib` from source), then build the full package:
@@ -172,9 +174,9 @@ Because humans and cats are far too messy to isolate, physicists test these idea
 Think of this repository as a two-part engine that checks the paper's math from two independent angles:
 
 1. **The Python Simulator (`lf_leak_tests.py`) — Testing Leaky Quantum Labs:**  
-   The paper derives formulas predicting how much "leakage" a quantum processor can suffer before the signature quantum effect disappears. The Python code simulates thousands of measurement angles and noise levels across real experimental test formulas. One of its coolest findings is a huge difficulty jump: testing **one** isolated quantum "Friend" is fairly forgiving when a little information leaks out, whereas testing **two** isolated quantum "Friends" at the same time is drastically harder—any tiny leak crushes the quantum signal exponentially faster (scaling like $f^4$ instead of $f^2$). That tells experimentalists exactly how clean their quantum chips need to be to see the effect.
+   The paper derives formulas predicting how much "leakage" a quantum processor can suffer before the signature quantum effect disappears. The Python code simulates thousands of measurement angles and noise levels across real experimental test formulas. One of its coolest findings is a huge difficulty jump: testing **one** isolated quantum "Friend" is fairly forgiving when a little information leaks out, whereas testing **two** isolated quantum "Friends" at the same time is drastically harder—any leak suppresses the quantum signal far more strongly (scaling like $f^4$ instead of $f^2$). That tells experimentalists exactly how clean their quantum chips need to be to see the effect.
 2. **The Lean 4 Proof-Checker (`lean/`) — Bulletproof Math Verification:**  
-   Traditionally, scientists check math proofs by reading them line by line, which means subtle human errors can occasionally slip past reviewers. **Lean 4** is a specialized programming language where mathematical theorems are written as code: if even a tiny logical step is flawed or incomplete, the computer refuses to compile the file. The Lean files in this repository check all 96 geometric corners of the quantum test rules and verify the core algebraic inequalities step-by-step, giving readers 100% mathematical certainty without having to take the algebra on faith.
+   Traditionally, scientists check math proofs by reading them line by line, which means subtle human errors can occasionally slip past reviewers. **Lean 4** is a specialized programming language where mathematical theorems are written as code: if even a tiny logical step is flawed or incomplete, the computer refuses to compile the file. The Lean files in this repository check all 96 geometric corners of the quantum test rules and verify the algebraic identities behind the paper's lower bound step-by-step, so readers do not have to take those parts on faith. (The paper's main operator theorem is checked numerically here, not yet in Lean.)
 
 ---
 
@@ -183,11 +185,12 @@ Think of this repository as a two-part engine that checks the paper's math from 
 If you use or fork this verification suite in your research, please cite:
 
 ```bibtex
-@article{baker2026covariant,
-  title   = {Covariant Record Horizons and the Abandonment of Absolute Events},
-  author  = {Baker, Kevin J.},
-  journal = {arXiv preprint arXiv:TODO.XXXXX},
-  year    = {2026}
+@misc{baker2026covariant,
+  title     = {Covariant Record Horizons and the Abandonment of Absolute Events},
+  author    = {Baker, Kevin J.},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.24435914}
 }
 ```
 
