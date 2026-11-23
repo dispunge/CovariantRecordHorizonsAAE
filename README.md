@@ -35,7 +35,7 @@ This repository provides **independent, reproducible verification** of the manus
 | Proof that `Genuine LF` ($\le 6$) is NOT a Bell facet (LHV rank $12 < 15$) but IS a true LF facet (LF rank $15$) | `lean/CovariantRecordHorizons/LFPolytope.lean` (`genuineLF_is_strict_LF_facet`) | Fraction-free integer Gaussian elimination inside the Lean 4 kernel |
 | Strict violation of `Genuine LF` for all $f \in (0, 1]$ with quartic excess $S_{\mathrm{GLF}}(f) \ge 6 + \frac{f^4}{1 + f^2}$ | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`genuineLF_quartic_excess`) | Formal real-algebra proof in Lean 4 + `Mathlib` (zero `sorry`) |
 | $\mathcal{O}(f^2)$ (One-Friend) vs. $\mathcal{O}(f^4)$ (Two-Friend) suppression & Werner visibility thresholds $f_{\mathrm{crit}}(\mu)$ | `lf_leak_tests.py` | Bidirectional homotopy `L-BFGS-B` sweeps + `brentq` root-finding |
-| Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ | `lf_leak_tests.py` | Analytical benchmark vs. multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
+| Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ and generalized noisy SOS identity | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`) & `lf_leak_tests.py` | Machine-checked noncommutative $*$-algebra Sum-of-Squares proof in Lean 4 + `Mathlib` & multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
 | Scope of the two-friend results: Brukner bound in every dimension (Jordan's lemma), failure of the quartic law for the other functionals under coarse-grained friend measurements, constant-outcome reduction of $I_{3322}$ | `lf_dimension_checks.py` | Seesaw search (explicit strategies, i.e. lower bounds) in local dimension 2, 3 and 4 |
 | Two-qubit product bound $S \le 2\mu\sqrt{1 + f_A^2 f_B^2}$ for the CHSH-type functionals (Proposition 2) and the two-lab threshold $f_{\mathrm{crit}} = (\mu^{-2} - 1)^{1/4}$ | `lf_leak_tests.py` (section 5 of the console report) | Multi-start optimization at nine $(f_A, f_B)$ pairs: no value above the bound, `Bell non-LF` and two-friend `Semi-Brukner` on it to $10^{-12}$; closed form vs. `brentq` thresholds |
 | Noise budget for circuit implementations: setting-dependent visibilities, exact relaxed LF bounds under readout error (linear program), one-friend closed form $2\mu\eta_0\sqrt{\eta_1^2 + \eta_2^2 f^2}$, critical gate and readout errors for the one-friend, Brukner and Genuine LF tests | `lf_noise_budget.py` | Density-matrix simulation of the circuit vs. visibility factors ($< 10^{-12}$), sum-of-squares identity on random matrices, linear program with dual certificates for the relaxed bounds, seesaw search (explicit strategies) with bisection for the thresholds |
@@ -66,7 +66,7 @@ This repository provides **independent, reproducible verification** of the manus
 │   ├── CovariantRecordHorizons.lean         # Lean library root
 │   └── CovariantRecordHorizons/
 │       ├── LFPolytope.lean                 # Kernel-checked polytope/rank proofs
-│       └── LFQuantumBounds.lean            # Mathlib real-algebra proofs
+│       └── LFQuantumBounds.lean            # Mathlib *-algebra SOS & real-algebra proofs
 ├── manuscript/
 │   ├── main.tex                             # RevTeX manuscript driver
 │   ├── Makefile                             # Clean rebuild, audit, and incremental targets
@@ -75,7 +75,7 @@ This repository provides **independent, reproducible verification** of the manus
 │   ├── sections/                            # Individual section .tex sources
 │   ├── bibliography/references.bib          # BibTeX reference database
 │   ├── figures/                             # Generated PDF/PNG publication figures
-│   └── data/lf_verification_results.json    # Generated numerical verification data
+│   └── data/                                # Generated JSON verification & noise-budget summaries
 ├── CITATION.cff                             # GitHub & Zenodo citation metadata (CFF 1.2.0)
 ├── README.md
 └── LICENSE                                  # Repository license
@@ -163,7 +163,7 @@ cd lean
 lake exe cache get
 lake build
 ```
-This builds both modules and formally verifies `genuineLF_bloch_normalization` and `genuineLF_quartic_excess`, proving over $\mathbb{R}$ that the analytical Bloch measurement family violates Bong *et al.*'s `Genuine LF` inequality for every nonzero coherence retention $f > 0$.
+This builds both modules and formally verifies `noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`, `genuineLF_bloch_normalization`, and `genuineLF_quartic_excess`, proving the dimension-independent noncommutative $*$-algebra Sum-of-Squares certificates of Theorem 1 and Eq. (26) as well as the continuous Bloch strategy lower bound for Bong *et al.*'s `Genuine LF` inequality across all $f > 0$.
 
 ---
 
@@ -206,7 +206,7 @@ Think of this repository as a two-part engine that checks the paper's math from 
 1. **The Python Simulator (`lf_leak_tests.py`) — Testing Leaky Quantum Labs:**  
    The paper derives formulas predicting how much "leakage" a quantum processor can suffer before the signature quantum effect disappears. The Python code simulates thousands of measurement angles and noise levels across real experimental test formulas. One of its coolest findings is a huge difficulty jump: testing **one** isolated quantum "Friend" is fairly forgiving when a little information leaks out, whereas testing **two** isolated quantum "Friends" at the same time is drastically harder—any leak suppresses the quantum signal far more strongly (scaling like $f^4$ instead of $f^2$). That tells experimentalists exactly how clean their quantum chips need to be to see the effect. A companion script (`lf_noise_budget.py`) adds the other imperfections of a real chip, namely imperfect two-qubit gates and readout, and reports how good a processor has to be for each test.
 2. **The Lean 4 Proof-Checker (`lean/`) — Bulletproof Math Verification:**  
-   Traditionally, scientists check math proofs by reading them line by line, which means subtle human errors can occasionally slip past reviewers. **Lean 4** is a specialized programming language where mathematical theorems are written as code: if even a tiny logical step is flawed or incomplete, the computer refuses to compile the file. The Lean files in this repository check all 96 geometric corners of the quantum test rules and verify the algebraic identities behind the paper's lower bound step-by-step, so readers do not have to take those parts on faith. (The paper's main operator theorem is checked numerically here, not yet in Lean.)
+   Traditionally, scientists check math proofs by reading them line by line, which means subtle human errors can occasionally slip past reviewers. **Lean 4** is a specialized programming language where mathematical theorems are written as code: if even a tiny logical step is flawed or incomplete, the computer refuses to compile the file. The Lean files in this repository check all 96 geometric corners and facet ranks of the quantum test rules, verify the noncommutative operator Sum-of-Squares identity of Theorem 1, and verify the algebraic identities behind the paper's lower bound step-by-step, so readers do not have to take those proofs on faith.
 
 ---
 
