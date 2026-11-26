@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Reflex",
+    "s_lf": 0.465,
+    "s_lf_err": 0.009,
+    "eps": 0.0175,
+    "eps_err": 0.0021,
+    "record_gates": null,
+    "reversal_gates": null,
+    "source": "Laux and Cavalcanti, arXiv:2609.12527, Tables I and II (ibm_marrakesh)"
+  },
+  {
+    "name": "Guessing",
+    "s_lf": 0.435,
+    "s_lf_err": 0.013,
+    "eps": 0.0234,
+    "eps_err": 0.0023,
+    "record_gates": null,
+    "reversal_gates": null,
+    "source": "Laux and Cavalcanti, arXiv:2609.12527, Tables I and II (ibm_marrakesh)"
+  },
+  {
+    "name": "Always-3/4",
+    "s_lf": 0.378,
+    "s_lf_err": 0.019,
+    "eps": 0.0194,
+    "eps_err": 0.0023,
+    "record_gates": null,
+    "reversal_gates": null,
+    "source": "Laux and Cavalcanti, arXiv:2609.12527, Tables I and II (ibm_marrakesh)"
+  },
+  {
+    "name": "Betting",
+    "s_lf": 0.306,
+    "s_lf_err": 0.012,
+    "eps": 0.0171,
+    "eps_err": 0.0019,
+    "record_gates": null,
+    "reversal_gates": null,
+    "source": "Laux and Cavalcanti, arXiv:2609.12527, Tables I and II (ibm_marrakesh)"
+  }
+]
