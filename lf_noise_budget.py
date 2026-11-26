@@ -915,11 +915,19 @@ def main() -> None:
         print(f"    {name:<26} margin {min(margins):+.3f} to {max(margins):+.3f} over the quoted uncertainties")
 
     print("\n[4] Reference devices (f = 1 unless noted; shots are a shot-noise estimate)")
-    devices = (("r = 0.1%, eps = 0.5%", 0.001, 0.005, 1.0),
-               ("r = 0.3%, eps = 1%", 0.003, 0.01, 1.0),
-               ("r = 0.5%, eps = 1%", 0.005, 0.01, 1.0),
-               ("r = 1%,   eps = 2%", 0.01, 0.02, 1.0),
-               ("r = 0.3%, eps = 1%, f = 0.9", 0.003, 0.01, 0.9))
+    devices = (
+        ("r = 0.1%, eps = 0.5%", 0.001, 0.005, 1.0),
+        ("r = 0.3%, eps = 1%", 0.003, 0.01, 1.0),
+        ("r = 0.5%, eps = 1%", 0.005, 0.01, 1.0),
+        ("r = 1%,   eps = 2%", 0.01, 0.02, 1.0),
+        ("r = 0.3%, eps = 1%, f = 0.9", 0.003, 0.01, 0.9),
+        # Google Quantum AI, "Willow Spec Sheet" (published 9 Dec 2024, Chip 1);
+        # nominal published error rates, not fitted to an LF run:
+        ("Willow spec sheet, nominal: r = 0.33%, eps = 0.77%", 0.0033, 0.0077, 1.0),
+        ("Willow spec sheet, lower:   r = 0.15%, eps = 0.56%", 0.0015, 0.0056, 1.0),
+        ("Willow spec sheet, higher:  r = 0.51%, eps = 0.98%", 0.0051, 0.0098, 1.0),
+        ("Willow spec sheet, nominal, f = 0.95", 0.0033, 0.0077, 0.95),
+    )
     device_rows = {}
     for label, r2q, eps, f in devices:
         print(f"\n  {label}")
