@@ -115,6 +115,27 @@ Three features stand out. First, the ordering is the same everywhere: one-friend
 
 Laux and Cavalcanti~\cite{laux2026} report, for their ``Reflex'' agent on the processor \texttt{ibm\_marrakesh}, a one-friend value equivalent to $S_{\mathrm{SB}} = 2.465 \pm 0.009$, together with a discrepancy $\varepsilon = 0.0175 \pm 0.0021$ estimated from separate preparations of the memory qubit. Taking that $\varepsilon$ as the assignment error of every readout and $f = 1$, Eq.~\eqref{eq:sb_noisy} reproduces the value at $\lambda_{\mathrm{eff}} = 0.026$, that is $r_{\mathrm{eff}} = 2.0\%$ ($1.6\%$--$2.3\%$ over the quoted uncertainties). This is an equivalent noise level in our three-gate model, not a gate error of the device: it absorbs idling, crosstalk, and the additional operations of the agent's circuit. At that level the model places the two-friend Brukner test $0.30$ above its relaxed bound ($0.28$--$0.32$), a violation by five standard deviations in roughly $3 \times 10^3$ shots. The Genuine LF test lands at its threshold: $0.05$ below the relaxed bound, with a range from $0.11$ below to $0.01$ above over the quoted uncertainties. It requires $r_{\mathrm{eff}} < 1.8\%$ at the same readout error, or $\varepsilon < 1.6\%$ at the same gate noise. On this reading a two-friend Brukner test is within reach of hardware that has already run the one-friend test, while an inequality that is a facet of $\mathcal{P}_{\mathrm{LF}}$ but not of the Bell polytope is marginal at the same noise level: the model cannot say on which side it falls, and a moderate reduction of either error would decide it. Read through Corollary~\ref{cor:privacy}, the reported value also bounds the probability with which any system outside the laboratory could have predicted the agent's record, at $0.85 + \varepsilon \approx 0.86$.
 
+\subsection{A reference point at lower noise}
+\label{sec:low_noise_point}
+
+The calibration above places the genuine LF facet at its threshold. Lower error rates change that conclusion. As a reference point we take the nominal figures published for Google's Willow processor~\cite{willowspec2024,acharya2025}: a mean two-qubit gate error of $0.33\% \pm 0.18\%$ and a mean measurement error of $0.77\% \pm 0.21\%$. With $r = 0.33\%$, $\varepsilon = 0.77\%$, and $f = 1$ the circuit model gives the values of Table~\ref{tab:low_noise_point}. All three relaxed inequalities are violated, the genuine LF facet by $0.92$ ($0.78$--$1.08$ when both errors are moved by their quoted spreads), which a shot-noise estimate puts at five standard deviations in about $1.7 \times 10^3$ shots. A record with $f = 0.95$ lowers that margin to $0.57$.
+
+These are nominal error rates, not a calibration. The effective noise of an actual run includes idling, crosstalk, and single-qubit errors that the model omits, and the quoted measurement error refers to the measure qubits of an error-correction cycle. The statement is therefore conditional: if a two-friend circuit on such a device realizes its nominal error rates, the model predicts a clear violation of an inequality that is a facet of $\mathcal{P}_{\mathrm{LF}}$ but not of the Bell polytope. The circuit needs neither mid-circuit measurement nor feed-forward, because the friend's measurement is a CNOT and every readout comes at the end. Tests whose quantum ceiling is fixed have recently been proposed as processor benchmarks~\cite{kumar2026}. The CHSH-type LF tests share that property, with ceiling $2\sqrt{2}$, and in addition exercise the reversal of a measurement, which those benchmarks do not.
+
+\begin{table}[t]
+\caption{Predictions of the circuit model at nominal Willow-class error rates ($r = 0.33\%$, $\varepsilon = 0.77\%$, $f = 1$, $\mu = 1 - \lambda$), showing $S_{\max}$, the relaxed LF bound, the violation margin, and a shot-noise estimate of the shots for five standard deviations. Two-friend values are those of explicit two-qubit strategies.}
+\label{tab:low_noise_point}
+\begin{ruledtabular}
+\begin{tabular}{lcccc}
+Test & $S_{\max}$ & Bound & Margin & Shots \\
+\colrule
+Semi-Brukner (1 friend) & $2.712$ & $2.031$ & $+0.681$ & $4.7 \times 10^2$ \\
+Brukner (2 friends)     & $2.694$ & $2.031$ & $+0.663$ & $5.0 \times 10^2$ \\
+Genuine LF (2 friends)  & $6.986$ & $6.062$ & $+0.924$ & $1.7 \times 10^3$ \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
 \subsection{Limits of the model}
 
 The model contains depolarizing gate noise, dephasing of the record, and symmetric readout error, all of which act as visibilities. Energy relaxation is non-unital: it biases the record toward one outcome and adds offsets to the marginals that Eq.~\eqref{eq:visibilities} does not capture, beyond its contribution to $\varepsilon$. Coherent gate errors and crosstalk are likewise absent. Friends made of several qubits change both the number of entangling gates and the way leakage acts on the record~\cite{zeng2024}. The two-friend quantum values are lower bounds from explicit two-qubit strategies, whereas the relaxed bounds they are compared with are exact. The simulation in \texttt{lf\_noise\_budget.py} can be extended in each of these directions, and the script also evaluates a single set of device parameters.
