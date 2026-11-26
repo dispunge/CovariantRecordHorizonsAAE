@@ -72,13 +72,14 @@ What is exact and what is numerical
   conditions: the true tolerances can only be larger.
 
 Not modelled: energy relaxation and other non-unital noise, coherent gate
-errors, crosstalk, friends made of more than one qubit.
+errors, crosstalk, single-qubit gate errors.
 
 Usage
 -----
     python3 lf_noise_budget.py                    # self-test, tables, calibration
     python3 lf_noise_budget.py --plot --save-json lf_noise_budget.json
     python3 lf_noise_budget.py --r2q 0.004 --eps 0.01 --f 0.98   # one device
+    python3 lf_noise_budget.py --r2q 0.003 --eps 0.01 --friend-gates 10 --record-gates 1
 """
 from __future__ import annotations
 
@@ -87,14 +88,16 @@ import functools
 import itertools
 import json
 import math
+import os
 import time
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
-from scipy.optimize import linprog
+from scipy.optimize import linprog, minimize_scalar
 
 I2 = np.eye(2, dtype=complex)
 X = np.array([[0, 1], [1, 0]], dtype=complex)
+Y = np.array([[0, -1j], [1j, 0]], dtype=complex)
 Z = np.array([[1, 0], [0, -1]], dtype=complex)
 P_PLUS = np.array([[1, 0], [0, 0]], dtype=complex)
 P_MINUS = np.array([[0, 0], [0, 1]], dtype=complex)
@@ -150,11 +153,12 @@ PUBLISHED_RUN = {
 # 1. Noise model
 # ---------------------------------------------------------------------------
 
-def visibilities(lam: float, eps: float, friend: bool) -> Tuple[float, float, float, float]:
+def visibilities(lam: float, eps: float, friend: bool, record_gates: int = 1,
+                 reversal_gates: int = 2) -> Tuple[float, float, float, float]:
     """Visibility factors (identity, setting 1, setting 2, setting 3) of one laboratory."""
     if friend:
-        eta1 = (1.0 - lam) * (1.0 - 2.0 * eps)
-        eta2 = (1.0 - lam) ** 2 * (1.0 - 2.0 * eps)
+        eta1 = (1.0 - lam) ** record_gates * (1.0 - 2.0 * eps)
+        eta2 = (1.0 - lam) ** reversal_gates * (1.0 - 2.0 * eps)
         return (1.0, eta1, eta2, eta2)
     eta0 = 1.0 - 2.0 * eps
     return (1.0, eta0, eta0, eta0)
@@ -271,11 +275,39 @@ def relaxed_lf_bound(coeffs: Sequence[Sequence[float]], eps_a: float, eps_b: flo
     return primal
 
 
-def one_friend_closed_form(mu: float, lam: float, eps: float, f: float) -> float:
+def one_friend_closed_form(mu: float, lam: float, eps: float, f: float,
+                           record_gates: int = 1, reversal_gates: int = 2) -> float:
     """Exact maximum of the one-friend Semi-Brukner functional in the noise model."""
-    _, eta1, eta2, _ = visibilities(lam, eps, True)
+    if reversal_gates < record_gates:
+        raise ValueError(f"require reversal_gates >= record_gates, got {reversal_gates} < {record_gates}")
+    _, eta1, eta2, _ = visibilities(lam, eps, True, record_gates=record_gates,
+                                    reversal_gates=reversal_gates)
     eta0 = 1.0 - 2.0 * eps
     return 2.0 * mu * eta0 * math.sqrt(eta1 ** 2 + eta2 ** 2 * f ** 2)
+
+
+def max_friend_size(lam: float, eps: float, f: float, record: str = "last",
+                    mu: Optional[float] = None) -> int:
+    """Largest fan-out size G with a violation of the relaxed one-friend inequality.
+
+    The friend register has G qubits written by G CNOTs (g_rev = 2 G). Reading
+    the last copy gives g_rec = G; reading the first copy gives g_rec = 1.
+    """
+    if record not in ("last", "first"):
+        raise ValueError(f"record must be 'last' or 'first', got {record!r}")
+    if lam <= 0.0:
+        raise ValueError("lam must be positive to bound the friend size")
+    mu_val = (1.0 - lam) if mu is None else mu
+    bound = 2.0 + 4.0 * eps
+    g = 0
+    while True:
+        g_next = g + 1
+        g_rec = g_next if record == "last" else 1
+        if one_friend_closed_form(mu_val, lam, eps, f, record_gates=g_rec,
+                                  reversal_gates=2 * g_next) > bound:
+            g = g_next
+        else:
+            return g
 
 
 # ---------------------------------------------------------------------------
@@ -380,13 +412,16 @@ def seesaw(coeffs: np.ndarray, friends: Tuple[bool, bool], mu: float,
 
 def noisy_optimum(name: str, lam: float, eps: float, f: float, rng: np.random.Generator,
                   mu: Optional[float] = None, restarts: int = 12,
-                  warm: Optional[tuple] = None) -> dict:
+                  warm: Optional[tuple] = None, record_gates: int = 1,
+                  reversal_gates: int = 2) -> dict:
     """Best value found for one test at one noise point, with its relaxed LF bound."""
     test = TESTS[name]
     friends = test["friends"]
     mu = (1.0 - lam) if mu is None else mu
-    eta_a = visibilities(lam, eps, friends[0])
-    eta_b = visibilities(lam, eps, friends[1])
+    eta_a = visibilities(lam, eps, friends[0], record_gates=record_gates,
+                         reversal_gates=reversal_gates)
+    eta_b = visibilities(lam, eps, friends[1], record_gates=record_gates,
+                         reversal_gates=reversal_gates)
     f_a = f if friends[0] else 1.0
     f_b = f if friends[1] else 1.0
     seeds = [test["seed"](f)] if "seed" in test else []
@@ -478,6 +513,97 @@ def behaviour_circuit(strategy: tuple, friends: Tuple[bool, bool], mu: float, la
     return table
 
 
+_PAULIS = (I2, X, Y, Z)
+
+
+def _single_qubit_op(op: np.ndarray, qubit: int, n_qubits: int) -> np.ndarray:
+    factors = [op if idx == qubit else I2 for idx in range(n_qubits)]
+    out = factors[0]
+    for mat in factors[1:]:
+        out = np.kron(out, mat)
+    return out
+
+
+def _cnot_op(control: int, target: int, n_qubits: int) -> np.ndarray:
+    return (_single_qubit_op(P_PLUS, control, n_qubits)
+            + _single_qubit_op(P_MINUS, control, n_qubits) @ _single_qubit_op(X, target, n_qubits))
+
+
+def _depolarize_two_qubits(rho: np.ndarray, q0: int, q1: int, lam: float,
+                           n_qubits: int) -> np.ndarray:
+    if lam == 0.0:
+        return rho
+    twirled = np.zeros_like(rho)
+    for p0 in _PAULIS:
+        op0 = _single_qubit_op(p0, q0, n_qubits)
+        for p1 in _PAULIS:
+            op = op0 @ _single_qubit_op(p1, q1, n_qubits)
+            twirled += op @ rho @ op.conj().T
+    return (1.0 - lam) * rho + (lam / 16.0) * twirled
+
+
+def behaviour_fanout_one_friend(strategy: tuple, mu: float, lam: float, eps: float,
+                                f: float, g_friends: int, record_copy: int) -> np.ndarray:
+    """One-friend circuit simulation with a G-qubit fan-out friend register.
+
+    Alice's system S_A (qubit 0) writes G record qubits F_1..F_G (qubits 1..G) via
+    CNOT(S_A -> F_1), ..., CNOT(S_A -> F_G), each followed by two-qubit depolarizing
+    noise of strength lam. After a dephasing leak with coherence retention f on the
+    record, setting 1 reads F_{record_copy}; settings 2 and 3 reverse the G CNOTs in
+    reverse order (with the same depolarizing noise) and measure S_A. Bob (qubit G+1)
+    has no friend.
+    """
+    if not (1 <= record_copy <= g_friends):
+        raise ValueError(f"require 1 <= record_copy <= g_friends, got {record_copy} vs {g_friends}")
+    psi, obs_a, obs_b = strategy
+    n_qubits = g_friends + 2
+    dim = 2 ** n_qubits
+    eye = np.eye(dim, dtype=complex)
+    pair = mu * np.outer(psi, psi.conj()) + (1.0 - mu) * np.eye(4, dtype=complex) / 4.0
+    zero_friends = np.zeros((2 ** g_friends, 2 ** g_friends), dtype=complex)
+    zero_friends[0, 0] = 1.0
+    # Reorder (S_A, S_B, F_1..F_G) -> (S_A, F_1..F_G, S_B)
+    raw = np.kron(pair, zero_friends).reshape([2] * (2 * n_qubits))
+    perm = [0] + list(range(2, n_qubits)) + [1]
+    rho_init = raw.transpose(perm + [p + n_qubits for p in perm]).reshape(dim, dim)
+
+    cnots = {j: _cnot_op(0, j, n_qubits) for j in range(1, g_friends + 1)}
+    z_leak = _single_qubit_op(Z, 1, n_qubits)
+    readout = 1.0 - 2.0 * eps
+
+    def alice_op(setting: int) -> np.ndarray:
+        if setting == 0:
+            return eye
+        if setting == 1:
+            return readout * _single_qubit_op(Z, record_copy, n_qubits)
+        trace_part = np.real(np.trace(obs_a[setting])) / 2.0
+        traceless = obs_a[setting] - trace_part * I2
+        return trace_part * eye + readout * _single_qubit_op(traceless, 0, n_qubits)
+
+    def bob_op(setting: int) -> np.ndarray:
+        if setting == 0:
+            return eye
+        trace_part = np.real(np.trace(obs_b[setting])) / 2.0
+        traceless = obs_b[setting] - trace_part * I2
+        return trace_part * eye + readout * _single_qubit_op(traceless, n_qubits - 1, n_qubits)
+
+    table = np.zeros((4, 4))
+    for x in range(4):
+        rho = rho_init.copy()
+        for j in range(1, g_friends + 1):
+            gate = cnots[j]
+            rho = _depolarize_two_qubits(gate @ rho @ gate.conj().T, 0, j, lam, n_qubits)
+        rho = 0.5 * (1.0 + f) * rho + 0.5 * (1.0 - f) * (z_leak @ rho @ z_leak)
+        if x >= 2:
+            for j in range(g_friends, 0, -1):
+                gate = cnots[j]
+                rho = _depolarize_two_qubits(gate @ rho @ gate.conj().T, 0, j, lam, n_qubits)
+        op_a = alice_op(x)
+        for y in range(4):
+            table[x, y] = float(np.real(np.trace(rho @ (op_a @ bob_op(y)))))
+    return table
+
+
 def shots_for_significance(coeffs: Sequence[Sequence[float]], table: np.ndarray,
                            margin: float, sigmas: float = 5.0) -> float:
     """Shot-noise estimate of the total number of shots for a `sigmas`-sigma violation.
@@ -521,14 +647,17 @@ def _bisect(func, lo: float, hi: float, tol: float) -> float:
 
 
 def critical_lambda(name: str, eps: float, f: float, rng: np.random.Generator,
-                    step: float = 0.01, tol: float = 2e-4, restarts: int = 6) -> float:
+                    step: float = 0.01, tol: float = 2e-4, restarts: int = 6,
+                    record_gates: int = 1, reversal_gates: int = 2) -> float:
     """Largest depolarizing parameter per entangling gate at which the test is still violated.
 
     Returns 0.0 if the relaxed inequality is not violated even with perfect gates.
     """
     if name.startswith("Semi-Brukner"):
         def margin(lam: float) -> float:
-            return one_friend_closed_form(1.0 - lam, lam, eps, f) - (2.0 + 4.0 * eps)
+            return one_friend_closed_form(1.0 - lam, lam, eps, f,
+                                          record_gates=record_gates,
+                                          reversal_gates=reversal_gates) - (2.0 + 4.0 * eps)
         if margin(0.0) <= 0:
             return 0.0
         return _bisect(margin, 0.0, 0.5, tol / 10)
@@ -536,7 +665,9 @@ def critical_lambda(name: str, eps: float, f: float, rng: np.random.Generator,
     state = {"warm": None}
 
     def margin(lam: float, extra: int = 0) -> float:
-        res = noisy_optimum(name, lam, eps, f, rng, restarts=restarts + extra, warm=state["warm"])
+        res = noisy_optimum(name, lam, eps, f, rng, restarts=restarts + extra,
+                            warm=state["warm"], record_gates=record_gates,
+                            reversal_gates=reversal_gates)
         state["warm"] = res["strategy"]
         return res["margin"]
 
@@ -614,10 +745,13 @@ def monotone_envelope(values: Sequence[float], increasing: bool) -> List[float]:
     return out
 
 
-def calibrate_lambda(value: float, eps: float, f: float = 1.0) -> float:
+def calibrate_lambda(value: float, eps: float, f: float = 1.0,
+                     record_gates: int = 1, reversal_gates: int = 2) -> float:
     """Depolarizing parameter at which the one-friend model reproduces an observed value."""
     def excess(lam: float) -> float:
-        return one_friend_closed_form(1.0 - lam, lam, eps, f) - value
+        return one_friend_closed_form(1.0 - lam, lam, eps, f,
+                                      record_gates=record_gates,
+                                      reversal_gates=reversal_gates) - value
     if excess(0.0) <= 0:
         return 0.0
     return _bisect(excess, 0.0, 0.5, 1e-7)
@@ -741,6 +875,47 @@ def self_test(rng: np.random.Generator) -> dict:
     assert abs(ideal["Brukner (2 friends)"] - 2 * math.sqrt(2)) < 1e-9
     assert abs(ideal["Genuine LF (2 friends)"] - 7.344912) < 1e-5
     report["noiseless_values"] = ideal
+
+    # (f) multi-gate fan-out friend (G = 1, 2, 3, reading copy 1 and copy G):
+    #     use an independent RNG so default downstream tables/curves keep identical seeds.
+    fan_rng = np.random.default_rng(17)
+    worst_fanout, worst_g1 = 0.0, 0.0
+    for g_friends in (1, 2, 3):
+        for record_copy in sorted({1, g_friends}):
+            for mu, lam, eps, f in ((0.97, 0.03, 0.015, 0.9),
+                                    (1.0, 0.08, 0.0, 0.6),
+                                    (0.92, 0.04, 0.02, 1.0)):
+                res = noisy_optimum("Semi-Brukner (1 friend)", lam, eps, f, fan_rng, mu=mu,
+                                    restarts=4, record_gates=record_copy,
+                                    reversal_gates=2 * g_friends)
+                strategies = [res["strategy"]]
+                for _ in range(2):
+                    psi = fan_rng.normal(size=4) + 1j * fan_rng.normal(size=4)
+                    psi /= np.linalg.norm(psi)
+                    obs_pair = []
+                    for _lab in range(2):
+                        lab_obs = {}
+                        for k in (1, 2, 3):
+                            h = fan_rng.normal(size=(2, 2)) + 1j * fan_rng.normal(size=(2, 2))
+                            h = h + h.conj().T
+                            lab_obs[k] = matrix_sign(h - np.trace(h) / 2.0 * I2)
+                            if fan_rng.random() < 0.3:
+                                lab_obs[k] = I2 * (1.0 if fan_rng.random() < 0.5 else -1.0)
+                        obs_pair.append(lab_obs)
+                    strategies.append((psi, obs_pair[0], obs_pair[1]))
+                for strategy in strategies:
+                    eff = behaviour_effective(strategy, (True, False), mu, res["eta_a"],
+                                              res["eta_b"], res["f_a"], res["f_b"])
+                    sim = behaviour_fanout_one_friend(strategy, mu, lam, eps, f,
+                                                      g_friends, record_copy)
+                    worst_fanout = max(worst_fanout, float(np.max(np.abs(eff - sim))))
+                    if g_friends == 1:
+                        circ = behaviour_circuit(strategy, (True, False), mu, lam, eps, f, 1.0)
+                        worst_g1 = max(worst_g1, float(np.max(np.abs(sim - circ))))
+    report["fanout_vs_visibility_max_abs_diff"] = worst_fanout
+    report["fanout_g1_vs_circuit_max_abs_diff"] = worst_g1
+    assert worst_fanout < 1e-10, worst_fanout
+    assert worst_g1 < 1e-10, worst_g1
     return report
 
 
@@ -749,10 +924,12 @@ def self_test(rng: np.random.Generator) -> dict:
 # ---------------------------------------------------------------------------
 
 def device_report(lam: float, eps: float, f: float, mu: Optional[float],
-                  rng: np.random.Generator, restarts: int = 30) -> List[dict]:
+                  rng: np.random.Generator, restarts: int = 30,
+                  record_gates: int = 1, reversal_gates: int = 2) -> List[dict]:
     rows = []
     for name, test in TESTS.items():
-        res = noisy_optimum(name, lam, eps, f, rng, mu=mu, restarts=restarts)
+        res = noisy_optimum(name, lam, eps, f, rng, mu=mu, restarts=restarts,
+                            record_gates=record_gates, reversal_gates=reversal_gates)
         table = behaviour_effective(res["strategy"], test["friends"], res["mu"], res["eta_a"],
                                     res["eta_b"], res["f_a"], res["f_b"])
         rows.append({
@@ -763,6 +940,80 @@ def device_report(lam: float, eps: float, f: float, mu: Optional[float],
             "shots_5_sigma": shots_for_significance(test["coeffs"], table, res["margin"]),
         })
     return rows
+
+
+def fit_agents(path: str) -> dict:
+    """Compare the gate-count visibility model against the four agents of arXiv:2609.12527.
+
+    Skips cleanly while any agent's transpiled Heisenberg gate counts (record_gates,
+    reversal_gates) are null. When populated:
+      * Test 1 (prediction): calibrate lambda on Reflex alone and report predicted
+        S_LF = S_SB - 2 and residuals (in standard errors) for the other three agents.
+      * Test 2 (consistency): fit a single lambda across all four agents by weighted
+        least squares and report lambda, chi-squared, and degrees of freedom.
+    """
+    with open(path, "r", encoding="utf-8") as handle:
+        raw = json.load(handle)
+    agents = raw["agents"] if isinstance(raw, dict) else raw
+    missing = [a["name"] for a in agents
+               if a.get("record_gates") is None or a.get("reversal_gates") is None]
+    if missing:
+        print(f"  Skipped ({path}): record_gates/reversal_gates are null for "
+              f"{', '.join(missing)} (awaiting transpiled Heisenberg gate counts).")
+        return {"status": "skipped", "missing_gate_counts": missing, "path": path}
+
+    def pred_s_lf(lam: float, agent: dict) -> float:
+        return one_friend_closed_form(
+            1.0 - lam, lam, float(agent["eps"]), 1.0,
+            record_gates=int(agent["record_gates"]),
+            reversal_gates=int(agent["reversal_gates"]),
+        ) - 2.0
+
+    reflex = next((a for a in agents if a["name"].lower().startswith("reflex")), agents[0])
+    lam_reflex = calibrate_lambda(
+        2.0 + float(reflex["s_lf"]), float(reflex["eps"]), 1.0,
+        record_gates=int(reflex["record_gates"]),
+        reversal_gates=int(reflex["reversal_gates"]),
+    )
+    predictions = []
+    print(f"  Test 1 (calibrated on {reflex['name']}: lambda_eff = {lam_reflex:.5f}):")
+    print(f"    {'agent':<14} {'g_rec':>5} {'g_rev':>5} {'observed':>10} {'predicted':>10} {'residual':>10} {'z (sigma)':>10}")
+    for agent in agents:
+        obs = float(agent["s_lf"])
+        err = float(agent["s_lf_err"])
+        pred = pred_s_lf(lam_reflex, agent)
+        res = obs - pred
+        z = res / err
+        predictions.append({
+            "name": agent["name"],
+            "record_gates": int(agent["record_gates"]),
+            "reversal_gates": int(agent["reversal_gates"]),
+            "observed": obs,
+            "observed_err": err,
+            "predicted": pred,
+            "residual": res,
+            "residual_sigma": z,
+        })
+        print(f"    {agent['name']:<14} {int(agent['record_gates']):5d} {int(agent['reversal_gates']):5d} "
+              f"{obs:10.4f} {pred:10.4f} {res:+10.4f} {z:+10.2f}")
+
+    def chi2_fn(lam: float) -> float:
+        return sum(((float(a["s_lf"]) - pred_s_lf(lam, a)) / float(a["s_lf_err"])) ** 2
+                   for a in agents)
+
+    opt = minimize_scalar(chi2_fn, bounds=(0.0, 0.5), method="bounded", options={"xatol": 1e-10})
+    lam_wls = float(opt.x)
+    chi2_val = float(opt.fun)
+    dof = max(0, len(agents) - 1)
+    print(f"  Test 2 (weighted least squares across all {len(agents)} agents): "
+          f"lambda = {lam_wls:.5f}, chi^2 = {chi2_val:.2f} for {dof} dof.")
+    return {
+        "status": "ok",
+        "path": path,
+        "reflex_calibration": {"agent": reflex["name"], "lambda_eff": lam_reflex,
+                               "predictions": predictions},
+        "wls_fit": {"lambda": lam_wls, "chi2": chi2_val, "dof": dof},
+    }
 
 
 def print_device_report(rows: List[dict]) -> None:
@@ -846,6 +1097,16 @@ def main() -> None:
     parser.add_argument("--f", type=float, default=1.0, help="Device lookup: coherence retention of the record")
     parser.add_argument("--mu", type=float, default=None,
                         help="Device lookup: visibility of the entangled pair (default 1 - 4 r / 3)")
+    parser.add_argument("--friend-gates", type=int, default=None,
+                        help="Device lookup: entangling gates G of the friend's measurement "
+                             "(sets reversal_gates = 2 G)")
+    parser.add_argument("--record-gates", type=int, default=None,
+                        help="Device lookup: entangling gates g_rec on the record readout "
+                             "(default: G when --friend-gates is given, else 1)")
+    parser.add_argument("--agents-json", type=str,
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                             "manuscript", "data", "agents_laux2026.json"),
+                        help="Path to multi-agent JSON table for Stage B comparison")
     parser.add_argument("--seed", type=int, default=7, help="Seed for the random restarts")
     args = parser.parse_args()
     rng = np.random.default_rng(args.seed)
@@ -856,17 +1117,34 @@ def main() -> None:
     print("=" * 78)
 
     if args.r2q is not None:
+        if args.friend_gates is not None and args.friend_gates < 1:
+            parser.error("--friend-gates must be at least 1")
+        rev_gates = 2 * args.friend_gates if args.friend_gates is not None else 2
+        default_rec = args.friend_gates if args.friend_gates is not None else 1
+        rec_gates = default_rec if args.record_gates is None else args.record_gates
+        if not (1 <= rec_gates <= rev_gates):
+            parser.error(f"--record-gates must satisfy 1 <= k <= {rev_gates}")
         lam = 4.0 * args.r2q / 3.0
         print(f"\nDevice lookup: r_2q = {args.r2q:g} (lambda = {lam:.5f}), eps = {args.eps:g}, "
               f"f = {args.f:g}, mu = {'1 - lambda' if args.mu is None else args.mu}")
-        print_device_report(device_report(lam, args.eps, args.f, args.mu, rng))
-        print("\n  Two-friend rows are values of explicit two-qubit strategies (lower bounds).")
+        if (rec_gates, rev_gates) != (1, 2):
+            print(f"  Friend gate counts: g_rec = {rec_gates}, g_rev = {rev_gates}")
+        print_device_report(device_report(lam, args.eps, args.f, args.mu, rng,
+                                          record_gates=rec_gates, reversal_gates=rev_gates))
+        if (rec_gates, rev_gates) != (1, 2):
+            print("\n  Two-friend rows are model output assuming identical multi-gate friends in "
+                  "both laboratories (explicit two-qubit strategies, lower bounds).")
+        else:
+            print("\n  Two-friend rows are values of explicit two-qubit strategies (lower bounds).")
         return
 
     print("\n[1] Self-test")
     report = self_test(rng)
     print(f"  circuit simulation vs visibility factors: max |diff| = "
           f"{report['circuit_vs_visibility_max_abs_diff']:.1e}")
+    print(f"  fan-out simulation (G <= 3) vs visibilities: max |diff| = "
+          f"{report['fanout_vs_visibility_max_abs_diff']:.1e} "
+          f"(G = 1 vs circuit: {report['fanout_g1_vs_circuit_max_abs_diff']:.1e})")
     print(f"  one-friend closed form vs seesaw:         max |diff| = "
           f"{report['one_friend_closed_form_max_abs_diff']:.1e}")
     print(f"  sum-of-squares identity, random matrices: max residual = "
@@ -915,11 +1193,19 @@ def main() -> None:
         print(f"    {name:<26} margin {min(margins):+.3f} to {max(margins):+.3f} over the quoted uncertainties")
 
     print("\n[4] Reference devices (f = 1 unless noted; shots are a shot-noise estimate)")
-    devices = (("r = 0.1%, eps = 0.5%", 0.001, 0.005, 1.0),
-               ("r = 0.3%, eps = 1%", 0.003, 0.01, 1.0),
-               ("r = 0.5%, eps = 1%", 0.005, 0.01, 1.0),
-               ("r = 1%,   eps = 2%", 0.01, 0.02, 1.0),
-               ("r = 0.3%, eps = 1%, f = 0.9", 0.003, 0.01, 0.9))
+    devices = (
+        ("r = 0.1%, eps = 0.5%", 0.001, 0.005, 1.0),
+        ("r = 0.3%, eps = 1%", 0.003, 0.01, 1.0),
+        ("r = 0.5%, eps = 1%", 0.005, 0.01, 1.0),
+        ("r = 1%,   eps = 2%", 0.01, 0.02, 1.0),
+        ("r = 0.3%, eps = 1%, f = 0.9", 0.003, 0.01, 0.9),
+        # Google Quantum AI, "Willow Spec Sheet" (published 9 Dec 2024, Chip 1);
+        # nominal published error rates, not fitted to an LF run:
+        ("Willow spec sheet, nominal: r = 0.33%, eps = 0.77%", 0.0033, 0.0077, 1.0),
+        ("Willow spec sheet, lower:   r = 0.15%, eps = 0.56%", 0.0015, 0.0056, 1.0),
+        ("Willow spec sheet, higher:  r = 0.51%, eps = 0.98%", 0.0051, 0.0098, 1.0),
+        ("Willow spec sheet, nominal, f = 0.95", 0.0033, 0.0077, 0.95),
+    )
     device_rows = {}
     for label, r2q, eps, f in devices:
         print(f"\n  {label}")
@@ -927,9 +1213,34 @@ def main() -> None:
         device_rows[label] = rows
         print_device_report(rows)
 
+    print("\n[5] Largest fan-out friend size G with a one-friend violation (mu = 1 - lambda, g_rev = 2 G)")
+    size_specs = (
+        ("r = 0.3%, eps = 1%", 4.0 * 0.003 / 3.0, 0.01),
+        ("r = 0.33%, eps = 0.77% (Willow nominal)", 4.0 * 0.0033 / 3.0, 0.0077),
+        ("r = 0.1%, eps = 0.5%", 4.0 * 0.001 / 3.0, 0.005),
+        (f"lambda = {lam_eff:.4f}, eps = {run['eps']:.4f} (effective, IBM run)", lam_eff, run["eps"]),
+    )
+    print(f"  {'device parameters':<46} {'f=1, last':>10} {'f=1, first':>11} {'f=0.9, last':>12} {'f=0.9, first':>13}")
+    friend_size_limits = []
+    for label, lam_val, eps_val in size_specs:
+        entry = {
+            "label": label,
+            "lambda": lam_val,
+            "eps": eps_val,
+            "f1_last": max_friend_size(lam_val, eps_val, 1.0, record="last"),
+            "f1_first": max_friend_size(lam_val, eps_val, 1.0, record="first"),
+            "f09_last": max_friend_size(lam_val, eps_val, 0.9, record="last"),
+            "f09_first": max_friend_size(lam_val, eps_val, 0.9, record="first"),
+        }
+        friend_size_limits.append(entry)
+        print(f"  {label:<46} {entry['f1_last']:10d} {entry['f1_first']:11d} "
+              f"{entry['f09_last']:12d} {entry['f09_first']:13d}")
+    if args.agents_json and os.path.exists(args.agents_json):
+        fit_agents(args.agents_json)
+
     curves = None
     if args.plot or args.save_json:
-        print("\n[5] Curves for the figure", flush=True)
+        print("\n[6] Curves for the figure", flush=True)
         eps_grid = [0.0, 0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04]
         r_grid = [0.0, 0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.075, 0.09]
         curves = {"eps_grid": eps_grid, "r_grid": r_grid, "critical_lambda": {}, "critical_eps": {},
@@ -968,6 +1279,7 @@ def main() -> None:
             "calibration": {"run": run, "lambda_eff": lam_eff, "lambda_range": [lam_lo, lam_hi],
                             "tests": calib_rows, "margin_range": calib_range},
             "reference_devices": device_rows,
+            "friend_size_limits": friend_size_limits,
             "curves": curves,
         }
         with open(args.save_json, "w", encoding="utf-8") as handle:

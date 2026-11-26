@@ -15,6 +15,6 @@ lake build
 
 - `CovariantRecordHorizons.lean` — library root
 - `CovariantRecordHorizons/LFPolytope.lean` — 64-vertex LHV and 96-vertex LF polytope checks
-- `CovariantRecordHorizons/LFQuantumBounds.lean` — noncommutative `*`-algebra Sum-of-Squares proofs (`noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`), coherent Bloch-strategy normalization, and Genuine LF quartic-excess proofs
+- `CovariantRecordHorizons/LFQuantumBounds.lean` — noncommutative `*`-algebra Sum-of-Squares proofs (`noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`), certificate admissibility and ideal friend-size threshold (`sos_hypothesis_of_le`, `golden_threshold`), coherent Bloch-strategy normalization, and Genuine LF quartic-excess proofs
 
 Build artifacts belong in `.lake/`, which is ignored by Git.

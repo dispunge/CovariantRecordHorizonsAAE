@@ -55,3 +55,4 @@ jobs:
             manuscript/figures/lf_noise_budget.png
             manuscript/data/lf_verification_results.json
             manuscript/data/lf_noise_budget.json
+            manuscript/data/agents_laux2026.json

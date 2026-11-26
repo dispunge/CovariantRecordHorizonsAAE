@@ -38,7 +38,8 @@ This repository provides **independent, reproducible verification** of the manus
 | Exact One-Friend Semi-Brukner bound $B_{\max}^{\mathrm{SB}}(f) = 2\sqrt{1 + f^2} = 2\sqrt{2 - \ell^2}$ and generalized noisy SOS identity | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`) & `lf_leak_tests.py` | Machine-checked noncommutative $*$-algebra Sum-of-Squares proof in Lean 4 + `Mathlib` & multi-start Bloch/Schmidt optimization ($< 10^{-15}$ error) |
 | Scope of the two-friend results: Brukner bound in every dimension (Jordan's lemma), failure of the quartic law for the other functionals under coarse-grained friend measurements, constant-outcome reduction of $I_{3322}$ | `lf_dimension_checks.py` | Seesaw search (explicit strategies, i.e. lower bounds) in local dimension 2, 3 and 4 |
 | Two-qubit product bound $S \le 2\mu\sqrt{1 + f_A^2 f_B^2}$ for the CHSH-type functionals (Proposition 2) and the two-lab threshold $f_{\mathrm{crit}} = (\mu^{-2} - 1)^{1/4}$ | `lf_leak_tests.py` (section 5 of the console report) | Multi-start optimization at nine $(f_A, f_B)$ pairs: no value above the bound, `Bell non-LF` and two-friend `Semi-Brukner` on it to $10^{-12}$; closed form vs. `brentq` thresholds |
-| Noise budget for circuit implementations: setting-dependent visibilities, exact relaxed LF bounds under readout error (linear program), one-friend closed form $2\mu\eta_0\sqrt{\eta_1^2 + \eta_2^2 f^2}$, critical gate and readout errors for the one-friend, Brukner and Genuine LF tests | `lf_noise_budget.py` | Density-matrix simulation of the circuit vs. visibility factors ($< 10^{-12}$), sum-of-squares identity on random matrices, linear program with dual certificates for the relaxed bounds, seesaw search (explicit strategies) with bisection for the thresholds |
+| Noise budget for circuit implementations: setting-dependent visibilities, exact relaxed LF bounds under readout error (linear program), one-friend closed form $2\mu\eta_0\sqrt{\eta_1^2 + \eta_2^2 f^2}$, critical gate and readout errors for the one-friend, Brukner and Genuine LF tests, and Willow-class reference point | `lf_noise_budget.py` | Density-matrix simulation of the circuit vs. visibility factors ($< 10^{-12}$), sum-of-squares identity on random matrices, linear program with dual certificates for the relaxed bounds, seesaw search (explicit strategies) with bisection for the thresholds |
+| Friend-size scaling in entangling gates ($g_{\mathrm{rec}}, g_{\mathrm{rev}}$), ideal visibility threshold $v^2 > (\sqrt{5}-1)/2$, and maximum fan-out friend size $G$ | `lean/CovariantRecordHorizons/LFQuantumBounds.lean` (`sos_hypothesis_of_le`, `golden_threshold`) & `lf_noise_budget.py` (`max_friend_size`, `behaviour_fanout_one_friend`) | Formal real-algebra proofs in Lean 4 + `Mathlib`, exact multi-qubit fan-out density-matrix simulation for $G \le 3$ vs. Eq. (`eq:eta_gates`) ($< 10^{-15}$), and closed-form threshold evaluation |
 
 *(Note: Relativistic horizon soft-graviton/soft-photon ceilings following Danielson, Satishchandran, and Wald are treated analytically in the manuscript text and are not simulated here.)*
 
@@ -135,8 +136,9 @@ The model is one friend qubit per laboratory, a CNOT for the friend's measuremen
 **Look up one device:**
 ```bash
 python3 lf_noise_budget.py --r2q 0.004 --eps 0.01 --f 0.98
+python3 lf_noise_budget.py --r2q 0.003 --eps 0.01 --friend-gates 10 --record-gates 1
 ```
-`--r2q` is the average two-qubit gate infidelity, `--eps` the readout assignment error, `--f` the coherence retention of the record (for a record held for a time $t$, $f = e^{-t/T_{\varphi,S} - t/T_{\varphi,F}}$ with the pure-dephasing times of the system and friend qubits). The output lists, for each test, the best value found, the relaxed LF bound, the margin, and a shot-noise estimate of the shots needed for five standard deviations. Energy relaxation, coherent errors, crosstalk and multi-qubit friends are not modelled.
+`--r2q` is the average two-qubit gate infidelity, `--eps` the readout assignment error, `--f` the coherence retention of the record (for a record held for a time $t$, $f = e^{-t/T_{\varphi,S} - t/T_{\varphi,F}}$ with the pure-dephasing times of the system and friend qubits), and `--friend-gates G` (with optional `--record-gates k`) sets the entangling-gate counts $g_{\mathrm{rev}} = 2G$ and $g_{\mathrm{rec}} = k$ of a multi-gate friend. The output lists, for each test, the best value found, the relaxed LF bound, the margin, and a shot-noise estimate of the shots needed for five standard deviations. Energy relaxation, coherent errors, crosstalk, and single-qubit gate errors are not modelled.
 
 ---
 
@@ -163,7 +165,7 @@ cd lean
 lake exe cache get
 lake build
 ```
-This builds both modules and formally verifies `noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`, `genuineLF_bloch_normalization`, and `genuineLF_quartic_excess`, proving the dimension-independent noncommutative $*$-algebra Sum-of-Squares certificates of Theorem 1 and Eq. (26) as well as the continuous Bloch strategy lower bound for Bong *et al.*'s `Genuine LF` inequality across all $f > 0$.
+This builds both modules and formally verifies `noisy_semiBrukner_sos_identity`, `theorem1_sos_identity`, `sos_hypothesis_of_le`, `golden_threshold`, `genuineLF_bloch_normalization`, and `genuineLF_quartic_excess`, proving the dimension-independent noncommutative $*$-algebra Sum-of-Squares certificates of Theorem 1 and Eq. (`eq:sos_noisy`), certificate admissibility for multi-gate friends and the ideal visibility threshold of Eq. (`eq:golden_threshold`), and the continuous Bloch strategy lower bound for Bong *et al.*'s `Genuine LF` inequality across all $f > 0$.
 
 ---
 
@@ -200,7 +202,10 @@ If outcomes depend on physical receipts, why don't humans ever experience blurry
 
 Because humans and cats are far too messy to isolate, physicists test these ideas on **quantum computers**, where a "Friend" can be stripped down to a single ultra-cold qubit (quantum bit) acting as a minimalist memory register. Even on the best quantum chips, however, tiny amounts of information still leak out.
 
-### 4. How the Code in This Repo Backs Up the Paper
+### 4. Note from the human author
+I am a former computer programmer studying undergraduate AI Engineering (Applied Engineering), and my candidate capstone college project is seeing if AI can generate a usable paper on an advanced subject in another field, and back up the math using lean. I prompted AI with my ideas about stars like Betelgeuse, despite claims in popular science, not really being "dead" or "exploded" in our Earthly reality and developed a hypothesis that the same mistake was being made in popular science when interpreting quantum weirdness. To my surprise, my hypothesis seems largely backed up by current mainstream research, so I had to pivot the paper to trying to predict useful results for experiments using the power of Claude Fable ($140 worth or so) and Gemini Carbon, in order to help the paper contribute something useful.  My math level is only at Calculus I right now so I had to rely on the python, AI and lean to verify the math.
+
+### 5. How the Code in This Repo Backs Up the Paper
 Think of this repository as a two-part engine that checks the paper's math from two independent angles:
 
 1. **The Python Simulator (`lf_leak_tests.py`) — Testing Leaky Quantum Labs:**  
