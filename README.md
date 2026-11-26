@@ -202,7 +202,10 @@ If outcomes depend on physical receipts, why don't humans ever experience blurry
 
 Because humans and cats are far too messy to isolate, physicists test these ideas on **quantum computers**, where a "Friend" can be stripped down to a single ultra-cold qubit (quantum bit) acting as a minimalist memory register. Even on the best quantum chips, however, tiny amounts of information still leak out.
 
-### 4. How the Code in This Repo Backs Up the Paper
+### 4. Note from the human author
+I am a former computer programmer studying undergraduate AI Engineering (Applied Engineering), and my candidate capstone college project is seeing if AI can generate a usable paper on an advanced subject in another field, and back up the math using lean. I prompted AI with my ideas about stars like Betelgeuse, despite claims in popular science, not really being "dead" or "exploded" in our Earthly reality and developed a hypothesis (CAH) that the same mistake was being made in popular science when interpreting quantum weirdness. To my surprise, my hypothesis is largely backed up by current mainstream research (about 70% of frameworks), so I had to pivot the paper to trying to predict useful results for experiments using the power of Claude Fable ($140 worth or so) and Gemini Carbon, in order to help the paper contribute something useful.  My math level is only at Calculus I right now so I had to rely on the python, AI and lean to verify the math.
+
+### 5. How the Code in This Repo Backs Up the Paper
 Think of this repository as a two-part engine that checks the paper's math from two independent angles:
 
 1. **The Python Simulator (`lf_leak_tests.py`) — Testing Leaky Quantum Labs:**  
