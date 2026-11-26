@@ -338,3 +338,39 @@ theorem theorem1_sos_identity
   simpa only [one_smul, hscalar] using hgen
 
 end NoncommutativeSOS
+
+/-!
+  3. Multi-Gate Friend-Size Threshold and SOS Certificate Admissibility
+     (Sec. IV, Eqs. `eq:sos_noisy`, `eq:eta_gates`, and `eq:golden_threshold`):
+     * `sos_hypothesis_of_le`: whenever `0 ≤ f ≤ 1` and `0 ≤ η2 ≤ η1` (in particular
+       for `g_rev ≥ g_rec`), `0 ≤ η1^2 - (1 - f^2) * η2^2`, so `g := √(η1^2 - (1 - f^2) * η2^2)`
+       satisfies the real hypothesis `hg` of `noisy_semiBrukner_sos_identity`.
+     * `golden_threshold`: in the ideal-pair, noiseless-readout, zero-leakage fan-out case
+       `S_SB = 2 v √(1 + v^2)`, the violation condition `1 < v^2 + v^4` holds iff
+       `(√5 - 1) / 2 < v^2`.
+-/
+
+/-- Admissibility of the generalized noisy SOS certificate when `0 ≤ η2 ≤ η1` and `0 ≤ f ≤ 1`. -/
+theorem sos_hypothesis_of_le (f η1 η2 : ℝ) (hf0 : 0 ≤ f) (hf1 : f ≤ 1)
+    (h2 : 0 ≤ η2) (h12 : η2 ≤ η1) :
+    0 ≤ η1 ^ 2 - (1 - f ^ 2) * η2 ^ 2 := by
+  have _ : 0 ≤ f ∧ f ≤ 1 := ⟨hf0, hf1⟩
+  have h_eta_sq : η2 ^ 2 ≤ η1 ^ 2 := by nlinarith
+  have h_prod : (1 - f ^ 2) * η2 ^ 2 ≤ η2 ^ 2 := by nlinarith [sq_nonneg f, sq_nonneg η2]
+  linarith
+
+/-- Golden-ratio visibility threshold (`eq:golden_threshold`): `1 < v^2 + v^4 ↔ (√5 - 1) / 2 < v^2`. -/
+theorem golden_threshold (v : ℝ) :
+    1 < v ^ 2 + v ^ 4 ↔ (Real.sqrt 5 - 1) / 2 < v ^ 2 := by
+  have h5_nonneg : (0 : ℝ) ≤ 5 := by norm_num
+  have hsqrt5_sq : Real.sqrt 5 ^ 2 = 5 := Real.sq_sqrt h5_nonneg
+  have hsqrt5_nonneg : 0 ≤ Real.sqrt 5 := Real.sqrt_nonneg 5
+  have hv_sq : 0 ≤ v ^ 2 := sq_nonneg v
+  constructor
+  · intro h
+    by_contra hnot
+    have hle : v ^ 2 ≤ (Real.sqrt 5 - 1) / 2 := le_of_not_gt hnot
+    nlinarith
+  · intro h
+    nlinarith
+
